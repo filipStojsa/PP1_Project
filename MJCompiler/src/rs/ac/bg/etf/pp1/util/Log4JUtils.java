@@ -16,7 +16,14 @@ public class Log4JUtils {
 	}
 	
 	public URL findLoggerConfigFile() {
-		return Thread.currentThread().getContextClassLoader().getResource("log4j.xml");
+		try {
+			return new URL(new URL("file:"), "config/log4j.xml");
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+		//return Thread.currentThread().getContextClassLoader().getResource("log4j.xml");
 	}
 	
 	public void prepareLogFile(Logger root) {
