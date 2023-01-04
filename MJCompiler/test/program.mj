@@ -1,6 +1,8 @@
 program p
 
 const int size = 10;
+const char c = 'a';
+const boolean b = false;
 class Table {
     int pos[], neg[], factor;
     {

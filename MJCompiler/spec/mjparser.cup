@@ -7,6 +7,8 @@ import rs.ac.bg.etf.pp1.ast.*;
 parser code {:
 
 	Logger log = Logger.getLogger(getClass());
+	
+	boolean errorDetected;
         
     public void report_fatal_error(String message, Object info) throws java.lang.Exception {
       done_parsing();
@@ -22,6 +24,7 @@ parser code {:
     }
 
     public void report_error(String message, Object info) {
+    	errorDetected = true;
     	StringBuilder msg = new StringBuilder(message); 
     	if (info instanceof Symbol)
             msg.append (" na liniji ").append(((Symbol)info).left);
@@ -29,6 +32,10 @@ parser code {:
     }
 
 
+:}
+
+init with {:
+	errorDetected = false;
 :}
 
 scan with {:
@@ -96,20 +103,25 @@ terminal ARROW;
 
 /* NonTerminals */
 
-nonterminal Program, DeclarationList, VarDecl, VarDeclList, MoreVarDeclarations, 
-LastVarDeclarations, Type, ConstDecl, ConstDeclList, ConstDeclarations, ClassDecl, 
+nonterminal DeclarationList, VarDecl, VarDeclType, VarDeclList, MoreVarDeclarations, 
+LastVarDeclarations, ConstDecl, ConstType, ConstDeclList, ClassDecl, 
 OptExtend, ClassBodyList, ClassVarDecl, InnerClassSection, MethodDeclList, MethodDecl, 
 FormParsList, MethodReturnType, MethodVarDeclList, StatementList, Statement, IfElseEpsilon, 
 IfCondition, WhileCondition, DesignatorStatement, Designator, DesignatorList, ActPars, 
 ActParsList, Condition, CondTerm, CondFact, Expr, ExprTermList, Term, FactorList, Factor, 
 Label, Assignop, Relop, Addop, Mulop, FormPars, FormParsDecl, ArryDesignator;
 
+nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDeclarations;
+
 /* Grammar */
 
 precedence left ELSE;
 
 
-Program ::= (Program) PROG IDENT DeclarationList LBRACE MethodDeclList RBRACE;
+Program ::= (Program) PROG ProgName:prog DeclarationList LBRACE MethodDeclList RBRACE;
+
+ProgName ::= (ProgName) IDENT:progName;
 
 DeclarationList ::= (DeclarationLists) DeclarationList VarDecl
 				| (ConstListDeclarations) DeclarationList ConstDecl
@@ -117,8 +129,11 @@ DeclarationList ::= (DeclarationLists) DeclarationList VarDecl
 				| (NoDeclarations) /* epsilon */
 				;
 
-/* VarDecl = Type ident ["[" "]"] {"," ident ["[" "]"]} ";". */
-VarDecl ::= (VarDecl) Type VarDeclList;
+/* VarDecl */
+
+VarDecl ::= (VarDecl) VarDeclType VarDeclList;
+
+VarDeclType ::= (VarDeclType) Type:varType;
 
 /* OVDE IMAS DESNU REKURZIJU */
 
@@ -126,28 +141,30 @@ VarDeclList ::= (VarDeclarations) MoreVarDeclarations VarDeclList
 			| (NoVarDeclarations) LastVarDeclarations
 			;
 
-MoreVarDeclarations ::= (MoreVarDeclsArray) IDENT LBRACKET RBRACKET COMMA
-					| (MoreVarDeclNoArray) IDENT COMMA
+MoreVarDeclarations ::= (MoreVarDeclsArray) IDENT:nameVar LBRACKET RBRACKET COMMA
+					| (MoreVarDeclNoArray) IDENT:nameVar COMMA
 					| (ErrMoreVarDeclarations) error COMMA
 					;
 					
-LastVarDeclarations ::= (LastVarDeclArray) IDENT LBRACKET RBRACKET SEMICOL
-					| (LastVarDeclNoArray) IDENT SEMICOL
+LastVarDeclarations ::= (LastVarDeclArray) IDENT:nameVar LBRACKET RBRACKET SEMICOL
+					| (LastVarDeclNoArray) IDENT:nameVar SEMICOL
 					| (ErrLastVarDeclarations) error SEMICOL
 					;
 
-Type ::= (Type) IDENT;
+Type ::= (Type) IDENT:typeName;
 
 /* ConstDecl = "const" Type ident"="(numConst | charConst | boolConst) {, ident "=" (numConst | charConst | boolConst)} ";" */
-ConstDecl ::= (ConstDecl) CONST Type ConstDeclList SEMICOL;
+ConstDecl ::= (ConstDecl) CONST ConstType ConstDeclList SEMICOL;
+
+ConstType ::= (ConstType) Type:constType;
 
 ConstDeclList ::= (ConstDeclarationLists) ConstDeclList COMMA ConstDeclarations
 				| (NoConstDeclarations) ConstDeclarations
 				;
 				
-ConstDeclarations ::= (ConstDeclarationNum) IDENT EQ NUMBER
-					| (ConstDeclarationChar) IDENT EQ CHAR
-					| (ConstDeclarationBool) IDENT EQ BOOLEAN
+ConstDeclarations ::= (ConstDeclarationNum) IDENT:nameConst EQ NUMBER:value
+					| (ConstDeclarationChar) IDENT:nameConst EQ CHAR:value
+					| (ConstDeclarationBool) IDENT:nameConst EQ BOOLEAN:value
 					;
 
 /* ClassDecl = "class" ident ["extends" Type] "{" {VarDecl} ["{" {ConstructorDecl} {MethodDecl} "}"] "}". */
