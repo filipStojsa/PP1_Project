@@ -21,6 +21,9 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	int nVars = 0;
 	Struct currType;
 	
+	Obj currentMethod = null;
+	String currentMethodName = "";
+	
 	/* Helper functions */
 	public void report_error(String message, SyntaxNode info) {
 		errorDetected = true;
@@ -128,6 +131,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	
 	/* ************ Variables ************ */
 	// TODO: Da li treba da prolazi provera varijable ako njen tip ne postoji?
+	// TODO: Da li treba razdvojiti prepoznavanje za globalne i lokalne?
 	
 	public boolean isVariableValid(String nameVar, SyntaxNode info) {
 		Obj node = Tab.find(nameVar);
@@ -178,6 +182,60 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		else return;
 	}
 	
+	/* ************ Method declaration ************ */
+	
+	private boolean isFirstGlobalMethodDeclaration(String nameMeth) {
+		// TODO: Proveri dodatno da li je u istom opsegu eventualno
+		Obj tmp = Tab.find(nameMeth);
+		if(!tmp.equals(Tab.noObj)) {
+			report_error("Globalna metoda imena " + nameMeth + " vec postoji!", null);
+			return false;
+		}
+		return true;
+	}
+	
+	// return types open new scope of the method
+	public void visit(MethodRetVoid methodRetVoid) {
+		Struct returnType = Tab.noType;
+		currentMethodName = methodRetVoid.getNameMeth();
+		if(!isFirstGlobalMethodDeclaration(currentMethodName)) {
+			// TODO: Da li otvarati novi scope ili ne?
+			currentMethod = Tab.noObj;
+			methodRetVoid.obj = Tab.noObj;
+			return;	
+		}
+		
+		currentMethod = Tab.insert(Obj.Meth, currentMethodName, returnType);
+		methodRetVoid.obj = currentMethod;
+		Tab.openScope();
+		
+		report_info("Uspesno otvoren opseg za metodu : " + currentMethodName, methodRetVoid);
+		
+	}
+	
+	
+	public void visit(MethodRetType methodRetType) {
+		Struct returnType = methodRetType.getType().struct;
+		currentMethodName = methodRetType.getNameMeth();
+		if(!isFirstGlobalMethodDeclaration(currentMethodName)) {
+			// TODO: Da li otvarati novi scope ili ne?
+			currentMethod = Tab.noObj;
+			methodRetType.obj = Tab.noObj;
+			return;			
+		}
+		
+		currentMethod = Tab.insert(Obj.Meth, currentMethodName, returnType);
+		methodRetType.obj = currentMethod;
+		Tab.openScope();
+		
+		report_info("Uspesno otvoren opseg za metodu : " + currentMethodName, methodRetType);
+		
+	}
+	
+	// the parent node closes the method's scope
+	public void visit(MethodDecl methodDecl) {
+		
+	}
 }
 
 

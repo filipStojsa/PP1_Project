@@ -105,13 +105,13 @@ terminal ARROW;
 
 nonterminal DeclarationList, VarDecl, VarDeclType, VarDeclList, MoreVarDeclarations, 
 LastVarDeclarations, ConstDecl, ConstType, ConstDeclList, ClassDecl, 
-OptExtend, ClassBodyList, ClassVarDecl, InnerClassSection, MethodDeclList, MethodDecl, 
-FormParsList, MethodReturnType, MethodVarDeclList, StatementList, Statement, IfElseEpsilon, 
+OptExtend, ClassBodyList, ClassVarDecl, InnerClassSection, MethodDeclList, 
+FormParsList, MethodVarDeclList, StatementList, Statement, IfElseEpsilon, 
 IfCondition, WhileCondition, DesignatorStatement, Designator, DesignatorList, ActPars, 
 ActParsList, Condition, CondTerm, CondFact, Expr, ExprTermList, Term, FactorList, Factor, 
 Label, Assignop, Relop, Addop, Mulop, FormPars, FormParsDecl, ArryDesignator;
 
-nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodReturnType, MethodDecl;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDeclarations;
 
 /* Grammar */
@@ -190,7 +190,7 @@ MethodDeclList ::= (MultipleMethodsDecl) MethodDeclList MethodDecl
 
 /* MethodDecl */
 
-MethodDecl ::= (MethodDecl) MethodReturnType IDENT LPAREN FormParsList RPAREN MethodVarDeclList LBRACE StatementList RBRACE;
+MethodDecl ::= (MethodDecl) MethodReturnType LPAREN FormParsList RPAREN MethodVarDeclList LBRACE StatementList RBRACE;
 
 /* FormPars */
 
@@ -208,8 +208,8 @@ FormParsDecl ::= (FormParsDeclBrackets) Type IDENT LBRACKET RBRACKET
 				| (FormParsDeclNoBrackets) Type IDENT
 				;
 
-MethodReturnType ::= (MethodRetVoid) VOID
-					| (MethodRetType) Type
+MethodReturnType ::= (MethodRetVoid) VOID IDENT:nameMeth
+					| (MethodRetType) Type IDENT:nameMeth
 					;
 
 MethodVarDeclList ::= (MethodVars) MethodVarDeclList VarDecl

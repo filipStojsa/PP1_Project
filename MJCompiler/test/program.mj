@@ -12,6 +12,7 @@ class Table {
         int getn (int idx) { return neg[idx]; }
     }
 }
+
 Table val;
 Int rows, columns;
     {
