@@ -1,62 +1,102 @@
-program p
+//Test 302
 
-const int size = 10;
-const char c = 'a';
-const boolean b = false;
-class Table {
-    int pos[], neg[], factor;
-    {
-        void putp (int a, int idx) { this.pos[idx] = a; }
-        void putn (int a, int idx) { this.neg[idx] = a; }
-        int getp (int idx) { return factor; }
-        int getn (int idx) { return neg[idx]; }
-    }
-}
+program test302
 
-Table val;
-Int rows, columns;
-    {
-    void f(char ch, int a, int arg)
-    int x;
-    {
-         x = arg;
-    }
-    void main() int x, i; char c; int arr[];
-    {
-        val = new Table(2);
-        arr = new int[3];
-        print(2);
-        i = 0;
-        while (i<3) {
-            arr[i] = i;
-            i++;
-        }
-        arr.foreach(x => print(x););
-        val.pos = new int [size];
-        val.neg = new int [size];
-        read(x);
-        [i,x] = arr;
-        while (i<size) {
-            val.putp(0, i);
-            val.putn(0, i);
-            i++;
-        }
+const int jedan = 1;
 
-        f(c, x, i);
-        read(rows);
-        x =rows;
-        while (true){
-            if(x <= 0) break;
-            if (0 <= x && x < size)
-            {
-            val.putp(val.getp(x)+1);
-            }
-            else if (-size < x && x < 0)
-            {
-            val.putn(val.getn(-x)+1);
-            }
-            read(x);
-        }
+int i;
+bool ibool;
 
-    }
+int niz2;
+
+int niz[];
+int a, curr;
+
+{
+	
+	int sum(int z, int d)
+	{
+		return z + d;
+	}
+	
+
+	int inkrement(int a, int inc) 
+		int pom; 
+	{
+		if(inc == jedan) pom = 1;
+		else if(inc == 2) pom = a;
+
+		return sum(a,pom);
+	}
+	
+	bool verify() {
+		print('v');
+		return false;
+	}	
+	
+	void main()
+	{
+		
+		if(1!=1) print(-6);
+		else print(0);  
+			
+		ibool = false;
+		i = 0;
+		while(i < 5){
+			if(i == 2) ibool = true;
+			i++;
+		}
+		
+		if(ibool)
+			if(i == 5) print(1);
+			else print(-1); 	
+		a = 2;	
+		niz = new int[3];
+		niz[0] = 1 * a;
+		niz[1] = 2 * a;
+		niz[2] = sum(niz[1], niz[0]) * a + 1;
+		if(verify() || niz[2] == 4) print(ord('A')); 
+		else print(ord('a'));
+		
+		print(eol);
+		i = 0;
+		while (i < 10) {
+			if(i == 3)
+			{
+				i++;
+				continue;
+			}
+			if(i == 4) break;
+			i = inkrement(i, 1);
+		}
+		
+		if(i == 3 && verify()) print(-4);
+		else print(4);  
+		
+		read(niz[0]);
+		read(niz[1]);
+		read(niz[2]);
+		print(eol);
+		print(sum(sum(niz[0], niz[1]), niz[2])); 
+			
+		print(eol); 
+		print(inkrement(niz[2], 2));
+		
+		a = 3;
+		i = 0;
+		while (i < 3){
+			niz[i] = niz[i] * 2 * a;
+			i++;
+		}
+		
+		niz.foreach(curr => print(curr););
+		print(eol);
+		
+		niz2 = 0;
+		niz.foreach(curr => {
+			niz2 = niz2 + curr * curr;
+		});
+		print(niz2);
+	
+	}
 }

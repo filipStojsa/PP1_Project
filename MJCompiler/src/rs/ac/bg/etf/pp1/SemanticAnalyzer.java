@@ -1,6 +1,7 @@
 package rs.ac.bg.etf.pp1;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -14,7 +15,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	
 	public SemanticAnalyzer() {
 		// Redefine constructor to add boolean object
-		Tab.currentScope().addToLocals(new Obj(Obj.Type, "boolean", new Struct(Struct.Bool)));
+		Tab.currentScope().addToLocals(new Obj(Obj.Type, "bool", new Struct(Struct.Bool)));
 	}
 	
 	Logger log = Logger.getLogger(getClass());
@@ -29,7 +30,11 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	boolean currentMethodreturnCheck = false;
 	int currentMethodParamCnt = 0;
 	
+	List<Obj> parsList = new ArrayList<>();
+	
 	List<Obj> globalMethods = new ArrayList<>();
+
+	int nestedLoops = 0;
 	
 	/* Helper functions */
 	public void report_error(String message, SyntaxNode info) {
@@ -283,7 +288,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 	
 	/* ************ Return ************ */
-	
 
 	private boolean checkReturnStatementValidity(Statement returnStmt) {
 		// if return is not in function
@@ -335,6 +339,141 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 			report_info("Return definisan korektno!", returnStmtNoExpr);
 		}
 	}
+	
+	/* ************ FormPars ************ */
+	
+	private boolean isParamDefined(Obj node, FormParsDecl formParsDecl) {
+		if(node != Tab.noObj && Tab.currentScope().findSymbol(node.getName()) != null) {
+			// already defined in current scope -> error
+			report_error("Parametar " + node.getName() + " je vec definisan u listi funkcije", formParsDecl);
+			return true;
+		}
+		return false;
+	}
+	
+	public void visit(FormParsDeclNoBrackets formPars) {
+		// if it's NOT array
+		String paramName = formPars.getName();
+		Obj node = Tab.find(paramName);
+		if(!isParamDefined(node, formPars)) {
+			node = Tab.insert(Obj.Var, paramName, currType);
+			report_info("Deklarisan parametar " + paramName + " ", formPars);
+			
+			parsList.add(node);
+		}
+	}
+
+	public void visit(FormParsDeclBrackets formPars) {
+		// if it's array
+		String paramName = formPars.getName();
+		Obj node = Tab.find(paramName);
+		if(!isParamDefined(node, formPars)) {
+			node = Tab.insert(Obj.Var, paramName, new Struct(Struct.Array, formPars.getType().struct));
+			report_info("Deklarisan parametar kao niz " + paramName + " ", formPars);
+		
+			parsList.add(node);
+		}
+		
+	}
+	
+	/* ************ ClassDecl  ************ */
+	
+	/*
+	 * public void visit(BeginClassDecl classDecl) { String className =
+	 * classDecl.getClassName(); Obj node = Tab.find(className);
+	 * 
+	 * if(node != Tab.noObj) { report_error("Vec postoji klasa imena " + className +
+	 * "!", classDecl); return; }
+	 * 
+	 * Struct superclass = classDecl.getOptExtend().struct; //String superclassName
+	 * = classes.get(superclass);
+	 * 
+	 * currClassName = className; currClassStruct = new Struct(Struct.Class,
+	 * superclass); currClassStruct.setElementType(superclass);
+	 * 
+	 * Obj tmp = Tab.insert(Obj.Type, className, currClassStruct); classDecl.obj =
+	 * tmp;
+	 * 
+	 * Tab.openScope();
+	 * 
+	 * report_info("Klasa " + className + " je kreirana i doseg otvoren!",
+	 * classDecl); }
+	 */
+	
+	/* ************ Loops ************ */
+	
+	// start of while loop
+	public void visit(WhileCondition whileCondition) {
+		nestedLoops++;
+	}
+	
+	// end of while loop
+	public void visit(WhileStmt whileStmt) {
+		nestedLoops--;
+	}
+	
+	public void visit(BreakStmt breakStmt) {
+		if(nestedLoops != 0) {
+			return;
+		}
+		else {
+			report_error("BREAK naredba se mora naci unutar perlje!", breakStmt);
+		}
+	}
+	
+	public void visit(ContinueStmt continueStmt) {
+		if(nestedLoops != 0) {
+			return;
+		}
+		else {
+			report_error("CONTINUE naredba se mora naci unutar perlje!", continueStmt);
+		}
+	}
+	
+	// Foreach
+	
+	/* ************ Read & Print ************ */
+	
+	public void visit(PrintStmt printStmt) {
+		Struct typeExpr = printStmt.getExpr().struct;
+		if(
+				typeExpr != Tab.intType &&
+				typeExpr != Tab.charType &&
+				typeExpr != new Struct(Struct.Bool)
+		) {
+			report_error("Prvi arg. print naredbe nije tipa int, char ili bool!", printStmt);
+		}
+			
+	}
+	
+	public void visit(ReadStmt readStmt) {
+		Struct designatorType = readStmt.getDesignator().obj.getType();
+		int designatorKind = readStmt.getDesignator().obj.getKind();
+		
+		if(!isValidType(designatorType)) {
+			report_error("READ nije ni char ni int ni bool!", readStmt);
+		}
+		else if(!isValidKind(designatorKind)) {
+			report_error("READ izraz nije promenljiva ili element niza!", readStmt);
+		}
+	}
+
+	private boolean isValidKind(int designatorKind) {
+		if(designatorKind != Obj.Var && designatorKind != Obj.Elem) {
+			return false;
+		}
+		return true;
+	}
+
+	private boolean isValidType(Struct designatorType) {
+		if(designatorType != Tab.intType && designatorType != Tab.charType && designatorType != new Struct(Struct.Bool)) {
+			return false;
+		}
+		return true;
+	}
+	
+	/* ************ Designator ************ */
+	
 }
 
 

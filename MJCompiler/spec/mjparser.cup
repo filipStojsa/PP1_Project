@@ -104,15 +104,14 @@ terminal ARROW;
 /* NonTerminals */
 
 nonterminal DeclarationList, VarDecl, VarDeclType, VarDeclList, MoreVarDeclarations, 
-LastVarDeclarations, ConstDecl, ConstType, ConstDeclList, ClassDecl, 
-OptExtend, ClassBodyList, ClassVarDecl, InnerClassSection, MethodDeclList, 
+LastVarDeclarations, ConstDecl, ConstType, ConstDeclList, ClassDecl, ClassBodyList, ClassVarDecl, InnerClassSection, MethodDeclList, 
 FormParsList, MethodVarDeclList, StatementList, IfElseEpsilon, 
-IfCondition, WhileCondition, DesignatorStatement, Designator, DesignatorList, ActPars, 
+IfCondition, WhileCondition, DesignatorStatement, DesignatorList, ActPars, 
 ActParsList, Condition, CondTerm, CondFact, ExprTermList, Term, FactorList, Factor, 
 Label, Assignop, Relop, Addop, Mulop, FormPars, FormParsDecl, ArryDesignator;
 
-nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodReturnType, MethodDecl;
-nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDeclarations, Statement, Expr;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodReturnType, MethodDecl, BeginClassDecl, Designator;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDeclarations, Statement, Expr, OptExtend;
 
 /* Grammar */
 
@@ -168,9 +167,11 @@ ConstDeclarations ::= (ConstDeclarationNum) IDENT:nameConst EQ NUMBER:value
 					;
 
 /* ClassDecl = "class" ident ["extends" Type] "{" {VarDecl} ["{" {ConstructorDecl} {MethodDecl} "}"] "}". */
-ClassDecl ::= (ClassDecl) CLASS IDENT OptExtend LBRACE ClassBodyList RBRACE;
+ClassDecl ::= (ClassDecl) BeginClassDecl LBRACE ClassBodyList RBRACE;
 
-OptExtend ::= (WithClassExtend) EXTENDS Type
+BeginClassDecl ::= (BeginClassDecl) CLASS IDENT:className OptExtend;
+
+OptExtend ::= (WithClassExtend) EXTENDS Type:extClassName
 			| (NoClassExtend) /* epsilon */
 			;
 
@@ -204,8 +205,8 @@ FormPars ::= (FormParsMultiple) FormPars COMMA FormParsDecl
 			| (ErrFormParsRParen) error
 			;
 			
-FormParsDecl ::= (FormParsDeclBrackets) Type IDENT LBRACKET RBRACKET
-				| (FormParsDeclNoBrackets) Type IDENT
+FormParsDecl ::= (FormParsDeclBrackets) Type IDENT:name LBRACKET RBRACKET
+				| (FormParsDeclNoBrackets) Type IDENT:name
 				;
 
 MethodReturnType ::= (MethodRetVoid) VOID IDENT:nameMeth
