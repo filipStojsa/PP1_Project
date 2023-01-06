@@ -1,5 +1,8 @@
 package rs.ac.bg.etf.pp1;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.log4j.Logger;
 
 import rs.ac.bg.etf.pp1.ast.*;
@@ -21,8 +24,12 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	int nVars = 0;
 	Struct currType;
 	
-	Obj currentMethod = null;
+	Obj currentMethod = Tab.noObj;
 	String currentMethodName = "";
+	boolean currentMethodreturnCheck = false;
+	int currentMethodParamCnt = 0;
+	
+	List<Obj> globalMethods = new ArrayList<>();
 	
 	/* Helper functions */
 	public void report_error(String message, SyntaxNode info) {
@@ -232,9 +239,101 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		
 	}
 	
+	public void isMethodValid(Obj currentMethod) {
+		Struct retType = currentMethod.getType();
+		
+		if(currentMethodParamCnt > 0 && currentMethodName.equals("main")) {
+			report_error("Metoda main ne sme da ima parametre!", null);
+		}
+		
+		if(!currentMethodreturnCheck && retType != Tab.noType) {
+			report_error("Metoda " + currentMethodName + " nema return metodu, a nije void!", null);
+		}
+		
+	}
+	
+	public void resetHelperFieldsMethods() {
+		currentMethodreturnCheck = false;
+		currentMethod = Tab.noObj;
+		currentMethodName = "";
+		currentMethodParamCnt = 0;
+	}
+	
 	// the parent node closes the method's scope
 	public void visit(MethodDecl methodDecl) {
+		methodDecl.obj = currentMethod;
 		
+		// TODO: Da li ove provere uopste trebaju ovde??
+		isMethodValid(currentMethod);	// used to report any errors
+		
+		// TODO: Da li proveravati overloaded metode?
+		
+		// set method parameter count and chain it to the table
+		currentMethod.setLevel(currentMethodParamCnt);
+		Tab.chainLocalSymbols(currentMethod);
+		
+		Tab.closeScope();
+		
+		report_info("Uspesno zatvoren opseg za metodu : " + currentMethodName, methodDecl);
+		
+		globalMethods.add(currentMethod);
+		
+		resetHelperFieldsMethods();
+		
+	}
+	
+	/* ************ Return ************ */
+	
+
+	private boolean checkReturnStatementValidity(Statement returnStmt) {
+		// if return is not in function
+		if(currentMethod == Tab.noObj) {
+			report_error("Return naredba se ne nalazi ni u jednoj funkciji!", returnStmt);
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public void visit(ReturnStmt returnStmt) {
+		if(!checkReturnStatementValidity(returnStmt)) {
+			returnStmt.struct = Tab.noType;
+		}
+		else {
+			// return statement found
+			currentMethodreturnCheck = true;
+			Struct returnType = currentMethod.getType();
+			if(returnType == Tab.noType || returnType != returnStmt.getExpr().struct) {
+				report_error("Pogresan tip return naredbe!", returnStmt);
+				returnStmt.struct = Tab.noType;
+				return;
+			}
+			
+			// return is valid, set it
+			returnStmt.struct = returnStmt.getExpr().struct;
+			report_info("Return definisan korektno!", returnStmt);
+		}
+	}
+	
+
+	public void visit(ReturnStmtNoExpr returnStmtNoExpr) {
+		if(!checkReturnStatementValidity(returnStmtNoExpr)) {
+			returnStmtNoExpr.struct = Tab.noType;
+		}
+		else {
+			// return statement found
+			currentMethodreturnCheck = true;
+			Struct returnType = currentMethod.getType();
+			if(returnType != Tab.noType) {
+				report_error("Tip return naredbe mora biti void!", returnStmtNoExpr);
+				returnStmtNoExpr.struct = Tab.noType;
+				return;
+			}
+			
+			// return is valid, set it
+			returnStmtNoExpr.struct = Tab.noType;
+			report_info("Return definisan korektno!", returnStmtNoExpr);
+		}
 	}
 }
 

@@ -8,7 +8,7 @@ class Table {
     {
         void putp (int a, int idx) { this.pos[idx] = a; }
         void putn (int a, int idx) { this.neg[idx] = a; }
-        int getp (int idx) { return pos[idx]; }
+        int getp (int idx) { return factor; }
         int getn (int idx) { return neg[idx]; }
     }
 }
@@ -43,7 +43,6 @@ Int rows, columns;
         }
 
         f(c, x, i);
-        
         read(rows);
         x =rows;
         while (true){

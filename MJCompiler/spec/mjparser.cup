@@ -106,13 +106,13 @@ terminal ARROW;
 nonterminal DeclarationList, VarDecl, VarDeclType, VarDeclList, MoreVarDeclarations, 
 LastVarDeclarations, ConstDecl, ConstType, ConstDeclList, ClassDecl, 
 OptExtend, ClassBodyList, ClassVarDecl, InnerClassSection, MethodDeclList, 
-FormParsList, MethodVarDeclList, StatementList, Statement, IfElseEpsilon, 
+FormParsList, MethodVarDeclList, StatementList, IfElseEpsilon, 
 IfCondition, WhileCondition, DesignatorStatement, Designator, DesignatorList, ActPars, 
-ActParsList, Condition, CondTerm, CondFact, Expr, ExprTermList, Term, FactorList, Factor, 
+ActParsList, Condition, CondTerm, CondFact, ExprTermList, Term, FactorList, Factor, 
 Label, Assignop, Relop, Addop, Mulop, FormPars, FormParsDecl, ArryDesignator;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodReturnType, MethodDecl;
-nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDeclarations;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDeclarations, Statement, Expr;
 
 /* Grammar */
 
