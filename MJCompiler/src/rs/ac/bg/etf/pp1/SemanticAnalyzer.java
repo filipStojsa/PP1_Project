@@ -474,6 +474,122 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	
 	/* ************ Designator ************ */
 	
+	public void visit(DesignatorIdent designatorIdent) {
+		Obj node = Tab.find(designatorIdent.getNameDesignator());
+		if(node != Tab.noObj) {
+			// there is object
+			designatorIdent.obj = node;
+			int kind = node.getKind();
+			
+			switch (kind) {
+				case Obj.Var:
+					boolean found = false;
+					
+					for (Obj obj : parsList) {
+						
+						if(obj.equals(node)) {
+							found = true;
+							break;
+						}
+					}
+					if(found) {
+						report_info("Pristupa se parametru " + designatorIdent.getNameDesignator(), designatorIdent);
+					}
+					else {
+						report_info("Pristupa se promenljivoj " + designatorIdent.getNameDesignator(), designatorIdent);
+					}
+					break;
+					
+				case Obj.Con:
+					report_info("Pristupa se konstanti " + designatorIdent.getNameDesignator(), designatorIdent);
+					break;
+	
+				default:
+					break;
+			}
+		}
+		else {
+			designatorIdent.obj = Tab.noObj;
+			report_error("Pokusaj koriscena nedeklarisane promenljive " + designatorIdent.getNameDesignator(), designatorIdent);
+		}
+	}
+	
+	public void visit(DesignatorForExpression exprDesignator) {
+		Obj node = exprDesignator.getArryDesignator().getDesignator().obj;
+		
+		if(isCheckDesignatorOk(node, exprDesignator)) {
+			exprDesignator.obj = new Obj(Obj.Elem, node.getName(), node.getType().getElemType());
+			report_info("Pristupa se nizu " + node.getName(), exprDesignator);
+		}
+	}
+
+	private boolean isCheckDesignatorOk(Obj node, DesignatorForExpression designator) {
+		String nodeName = node.getName();
+		Struct nodeType = node.getType();
+		int nodeKind = nodeType.getKind();
+		
+		if(Struct.Array != nodeKind) {
+			report_error("Promenljiva " + nodeName + " nije niz!", designator);
+			return false;
+		}
+		else if(designator.getExpr().struct != Tab.intType) {
+			report_error("Izraz u [] nije int!", designator);
+			return false;
+		}
+		
+		return true;
+	}
+	
+	/* ************ Factors ************ */
+	
+	public void visit(FactorNumConst factorNum) {
+		factorNum.struct = Tab.intType;
+	}
+	
+	public void visit(FactorCharConst factorChar) {
+		factorChar.struct = Tab.charType;
+	}
+	
+	public void visit(FactorBoolConst factorBool) {
+		factorBool.struct = new Struct(Struct.Bool);
+	}
+	
+	public void visit(FactorNoParens factorDesignator) {
+		factorDesignator.struct = factorDesignator.getDesignator().obj.getType();
+	}
+	
+	public void visit(FactorWithActPars factorWithActPars) {
+		// TODO: Proveri da li treba stavljati nesto u STRUCT
+		if(factorWithActPars.getDesignator().obj.getKind() != Obj.Meth) {
+			report_error("Poziv nije korektan! Nije metoda!", factorWithActPars);
+			return;
+		}
+		else {
+			report_info("Poziv metode " + factorWithActPars.getDesignator().obj.getName(), factorWithActPars);
+		}
+	}
+	
+	public void visit(FactorExpr factorExpr) {
+		factorExpr.struct = factorExpr.getExpr().struct;
+	}
+	
+	public void visit(FactorNewActPars factorNewActPars) {
+		// TODO: Da li tebi FactorNewActPars tj poziv NEW metode za klasu treba uopste?
+		int factorKind = factorNewActPars.getType().struct.getKind();
+	}
+	
+	public void visit(FactorNewExpr factorNewExpr) {
+		// for creating Arrays
+		Struct arrSizeExpr = factorNewExpr.getExpr().struct;
+		if(arrSizeExpr == Tab.intType) {
+			Struct tmp = factorNewExpr.getType().struct;
+			factorNewExpr.struct = new Struct(Struct.Array, tmp);
+		}
+		else {
+			factorNewExpr.struct = Tab.noType;
+			report_error("Niz se ne moze inicirati ako vrednost izraza nije int!", factorNewExpr);
+		}
+	}
 }
 
 

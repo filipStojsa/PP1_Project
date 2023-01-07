@@ -107,11 +107,11 @@ nonterminal DeclarationList, VarDecl, VarDeclType, VarDeclList, MoreVarDeclarati
 LastVarDeclarations, ConstDecl, ConstType, ConstDeclList, ClassDecl, ClassBodyList, ClassVarDecl, InnerClassSection, MethodDeclList, 
 FormParsList, MethodVarDeclList, StatementList, IfElseEpsilon, 
 IfCondition, WhileCondition, DesignatorStatement, DesignatorList, ActPars, 
-ActParsList, Condition, CondTerm, CondFact, ExprTermList, Term, FactorList, Factor, 
+ActParsList, Condition, CondTerm, CondFact, ExprTermList, Term, FactorList, 
 Label, Assignop, Relop, Addop, Mulop, FormPars, FormParsDecl, ArryDesignator;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodReturnType, MethodDecl, BeginClassDecl, Designator;
-nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDeclarations, Statement, Expr, OptExtend;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDeclarations, Statement, Expr, OptExtend, Factor;
 
 /* Grammar */
 
@@ -260,7 +260,7 @@ DesignatorStatement ::= (DesignatorAssignop) Designator Assignop Expr
 
 Designator ::= (DesignatorForFields) Designator DOT IDENT
 			| (DesignatorForExpression) ArryDesignator LBRACKET Expr RBRACKET
-			| (DesignatorIdent) IDENT
+			| (DesignatorIdent) IDENT:nameDesignator
 			;
 			
 DesignatorList ::= (MoreDesignators) DesignatorList COMMA Designator
