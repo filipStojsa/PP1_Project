@@ -36,6 +36,15 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 
 	int nestedLoops = 0;
 	
+	Obj foreachObj = null;
+	
+	List<Obj> listToAssign = new ArrayList<>();
+	
+	enum Ops {
+		PLUS, MINUS, EQ, MUL, DIV, MOD, EQ_CMP, NEQ_CMP, GREATER, GREATER_EQ, LESS, LESS_EQ
+	};
+	Ops currOperator = null;
+	
 	/* Helper functions */
 	public void report_error(String message, SyntaxNode info) {
 		errorDetected = true;
@@ -430,7 +439,50 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		}
 	}
 	
-	// Foreach
+	public void visit(ForeachDesignator foreachDesignator) {
+		nestedLoops++;
+		
+		// foreach can't be used on non arrays
+		int kind = foreachDesignator.getDesignator().obj.getKind();
+		if(kind == Struct.Array) {
+			// set the corresponding struct to statement
+			foreachDesignator.struct = foreachDesignator.getDesignator().obj.getType().getElemType();
+		}
+		else {
+			report_error("Foreach perlja mora koristiti nad nizovima!", foreachDesignator);
+		}
+	}
+	
+	public void visit(ForeachIdent foreachIdent) {
+		Obj node = Tab.find(foreachIdent.getName());
+		if(node != Tab.noObj) {
+			// there is an object named like this
+			foreachIdent.obj = node;
+			if(node.getKind() == Obj.Var) {
+				foreachObj = node;
+			}
+			else {
+				// it's not variable, error
+				report_error("Iterirajuci objekat nije promenljiva!", foreachIdent);
+				foreachIdent.obj = Tab.noObj;
+			}
+		}
+		else {
+			// there is not
+			report_error("Ne postoji objekat imena " + foreachIdent.getName(), foreachIdent);
+			foreachIdent.obj = Tab.noObj;
+		}
+	}
+	
+	public void visit(ForeachStmt foreachStmt) {
+		// closing of foreach loop
+		nestedLoops--;
+		if(!foreachStmt.getForeachDesignator().struct.equals(foreachObj.getType())) {
+			report_error("Postoji neslaganje u tipu prilikom iteriranja!", foreachStmt);
+		}
+		
+		foreachObj = null;
+	}
 	
 	/* ************ Read & Print ************ */
 	
@@ -540,6 +592,89 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		return true;
 	}
 	
+	/* ************ DesignatorStatement ************ */
+	
+	public void visit(DesignatorAssignop designatorAssignop) {
+		Struct leftDesType = designatorAssignop.getDesignator().obj.getType();
+		Struct rightExprType = designatorAssignop.getExpr().struct;
+		int kind = designatorAssignop.getDesignator().obj.getKind();
+		// check if kind is valid
+		if(kind != Obj.Var && kind != Obj.Elem) {
+			report_error("Sa leve strane izraza se ne nalazi promenljiva ili element niza!", designatorAssignop);
+			return;
+		}
+		// TODO: Proveri ovu dodelu tj proveru
+		if(!leftDesType.assignableTo(rightExprType)) {
+			report_error("Dodela se ne moze izvrsiti - tipovi nisu kompatibilni!", designatorAssignop);
+			return;
+		}
+		
+		if(designatorAssignop.getDesignator().obj.equals(foreachObj)) {
+			report_error("Pokusaj koriscenja foreach za dodelu vrednosti - nije dozvoljeno!", designatorAssignop);
+			return;
+		}
+		
+	}
+	
+	public void visit(DesignatorIncrement desInc) {
+		if(!(desInc.getDesignator().obj.getKind() == Obj.Elem || 
+				desInc.getDesignator().obj.getKind() == Obj.Var)) {
+			report_error("Objekat za inkrementiranje mora biti promenljiva ili element niza!", desInc);
+			return;
+		}
+		
+		if(desInc.getDesignator().obj.getType() != Tab.intType) {
+			report_error("Inkrementiranje se moze vrsiti samo nad INT tipom!", desInc);
+			return;
+		}
+		
+	}
+
+	public void visit(DesignatorDecrement desDec) {
+		
+		if(!(desDec.getDesignator().obj.getKind() == Obj.Elem || 
+				desDec.getDesignator().obj.getKind() == Obj.Var)) {
+			report_error("Objekat za dekrementiranje mora biti promenljiva ili element niza!", desDec);
+			return;
+		}
+		
+		if(desDec.getDesignator().obj.getType() != Tab.intType) {
+			report_error("Dekrementiranje se moze vrsiti samo nad INT tipom!", desDec);
+		}
+	}
+	
+	public void visit(DesignatorActPars designatorActPars) {
+		if(designatorActPars.getDesignator().obj.getKind() == Obj.Meth) {
+			if(globalMethods.contains(designatorActPars.getDesignator().obj)) {
+				report_info("Pozvana funkcija " + designatorActPars.getDesignator().obj.getName(), designatorActPars);
+			}
+			else {
+				report_error("Poziv metode nije korektan - metoda se ne nalazi u listi!", designatorActPars);
+				return;
+			}
+		}
+		else {
+			report_error("Poziv metode nije korektan, nije metoda!", designatorActPars);
+		}
+	}
+	
+	// For list of assignments - using listToAssign
+	public void visit(DesignatorsList designatorsList) {
+		int kind = designatorsList.getDesignator().obj.getKind();
+		if(kind == Struct.Array) {
+			for (Obj node : listToAssign) {
+				if(!designatorsList.getDesignator().obj.getType().assignableTo(node.getType())) {
+					report_error("Dodela vrednosti u nizu nije korektna!", designatorsList);
+				}
+			}
+		}
+		else {
+			report_error("Promenljiva sa desne strane nije niz!", designatorsList);
+		}
+	}
+	
+	// TODO: Sta raditi sa OPTIONAL_DESIGNATOR???
+	
 	/* ************ Factors ************ */
 	
 	public void visit(FactorNumConst factorNum) {
@@ -588,6 +723,101 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		else {
 			factorNewExpr.struct = Tab.noType;
 			report_error("Niz se ne moze inicirati ako vrednost izraza nije int!", factorNewExpr);
+		}
+	}
+	
+	/* ************ ActPars ************ */
+	
+	/* ************ Expr ************ */
+	
+	boolean minusExpr = false;
+	
+	public void visit(ExprTermSingle exprTerm) {
+		exprTerm.struct = exprTerm.getTerm().struct;
+	}
+	
+	public void visit(ExprWith negExpr) {
+		minusExpr = true;
+		
+		
+	}
+	
+	public void visit(ExprTermMultiple addExpr) {
+		if(addExpr.getTerm().struct != Tab.intType) {
+			report_error("Nije moguce sabirati necelobrojne vrednosti!", addExpr);
+			addExpr.struct = Tab.noType;
+		}
+	}
+	
+	public void visit(ExptrWithout exprWithout) {
+		
+	}
+	
+	/* ************ Operators ************ */
+	
+	public void visit(Assignop assignop) {
+		currOperator = Ops.EQ;
+	}
+	
+	public void visit(EqOp EqOp) {
+		currOperator = Ops.EQ_CMP;
+	}
+	
+	public void visit(NeqOp NeqOp) {
+		currOperator = Ops.NEQ_CMP;
+	}
+	
+	public void visit(GreaterOp GreaterOp) {
+		currOperator = Ops.GREATER;
+	}
+	
+	public void visit(GreaterEqOp GreaterEqOp) {
+		currOperator = Ops.GREATER_EQ;
+	}
+	
+	public void visit(LessOp LessOp) {
+		currOperator = Ops.LESS;
+	}
+	
+	public void visit(LessEqOp LessEqOp) {
+		currOperator = Ops.LESS_EQ;
+	}
+	
+	public void visit(PlusOp PlusOp) {
+		currOperator = Ops.PLUS;
+	}
+	
+	public void visit(MinusOp MinusOp) {
+		currOperator = Ops.MINUS;
+	}
+	
+	public void visit(MultiplyOp MultiplyOp) {
+		currOperator = Ops.MUL;
+	}
+	
+	public void visit(DivOp DivOp) {
+		currOperator = Ops.DIV;
+	}
+	
+	public void visit(ModOp ModOp) {
+		currOperator = Ops.MOD;
+	}
+	
+	/* ************ CondFact ************ */
+	
+	/* ************ Term ************ */
+	
+	public void visit(TermSingleFactors termSingleFactors) {
+		termSingleFactors.struct = termSingleFactors.getFactor().struct;
+	}
+	
+	public void visit(TermMultipleFactors term) {
+		if(term.getFactorList().struct == Tab.intType && term.getFactor().struct == Tab.intType) {
+			term.struct = Tab.intType;
+		}
+		else {
+			report_error("Neki cinioci nisu INT!", term);
+			term.struct = Tab.noType;
 		}
 	}
 }

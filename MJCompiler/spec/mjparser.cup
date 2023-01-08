@@ -107,11 +107,11 @@ nonterminal DeclarationList, VarDecl, VarDeclType, VarDeclList, MoreVarDeclarati
 LastVarDeclarations, ConstDecl, ConstType, ConstDeclList, ClassDecl, ClassBodyList, ClassVarDecl, InnerClassSection, MethodDeclList, 
 FormParsList, MethodVarDeclList, StatementList, IfElseEpsilon, 
 IfCondition, WhileCondition, DesignatorStatement, DesignatorList, ActPars, 
-ActParsList, Condition, CondTerm, CondFact, ExprTermList, Term, FactorList, 
+ActParsList, Condition, CondTerm, CondFact, 
 Label, Assignop, Relop, Addop, Mulop, FormPars, FormParsDecl, ArryDesignator;
 
-nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodReturnType, MethodDecl, BeginClassDecl, Designator;
-nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDeclarations, Statement, Expr, OptExtend, Factor;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodReturnType, MethodDecl, BeginClassDecl, Designator, ForeachIdent;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDeclarations, Statement, Expr, OptExtend, Factor, ForeachDesignator, ExprTermList, Term, FactorList;
 
 /* Grammar */
 
@@ -234,11 +234,15 @@ Statement ::= (DesignatorStmt) DesignatorStatement SEMICOL
 			| (ReturnStmtNoExpr) RETURN SEMICOL
 			| (ReadStmt) READ LPAREN Designator RPAREN SEMICOL
 			| (MorePrintStmt) PRINT LPAREN Expr COMMA NUMBER RPAREN SEMICOL
-			| (ForeachStmt) Designator DOT FOREACH LPAREN IDENT ARROW Statement RPAREN SEMICOL
+			| (ForeachStmt) ForeachDesignator ForeachIdent ARROW Statement RPAREN SEMICOL
 			| (PrintStmt) PRINT LPAREN Expr RPAREN SEMICOL
 			| (StatementListWithBraces) LBRACE StatementList RBRACE
 			;
-			
+
+ForeachDesignator ::= (ForeachDesignator) Designator DOT FOREACH LPAREN;
+
+ForeachIdent ::= (ForeachIdent) IDENT:name;
+
 IfElseEpsilon ::= (IfElseEpsilon) /* epsilon */;
 
 IfCondition ::= (IfConditionOk) IF LPAREN Condition RPAREN Statement
