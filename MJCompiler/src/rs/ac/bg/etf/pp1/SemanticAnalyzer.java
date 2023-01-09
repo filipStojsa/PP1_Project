@@ -3,6 +3,7 @@ package rs.ac.bg.etf.pp1;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Stack;
 
 import org.apache.log4j.Logger;
 
@@ -12,10 +13,11 @@ import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 
 public class SemanticAnalyzer extends VisitorAdaptor {
-	
+	Struct boolType;
 	public SemanticAnalyzer() {
 		// Redefine constructor to add boolean object
-		Tab.currentScope().addToLocals(new Obj(Obj.Type, "bool", new Struct(Struct.Bool)));
+		boolType = new Struct(Struct.Bool);
+		Tab.currentScope().addToLocals(new Obj(Obj.Type, "bool", boolType));
 	}
 	
 	Logger log = Logger.getLogger(getClass());
@@ -370,6 +372,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 			
 			parsList.add(node);
 		}
+		currentMethodParamCnt++;
 	}
 
 	public void visit(FormParsDeclBrackets formPars) {
@@ -382,7 +385,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		
 			parsList.add(node);
 		}
-		
+		currentMethodParamCnt++;
 	}
 	
 	/* ************ ClassDecl  ************ */
@@ -412,7 +415,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	/* ************ Loops ************ */
 	
 	// start of while loop
-	public void visit(WhileCondition whileCondition) {
+	public void visit(BeginWhile beginWhile) {
 		nestedLoops++;
 	}
 	
@@ -450,6 +453,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		}
 		else {
 			report_error("Foreach perlja mora koristiti nad nizovima!", foreachDesignator);
+			foreachDesignator.struct = Tab.noType;
 		}
 	}
 	
@@ -491,7 +495,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		if(
 				typeExpr != Tab.intType &&
 				typeExpr != Tab.charType &&
-				typeExpr != new Struct(Struct.Bool)
+				typeExpr != boolType
 		) {
 			report_error("Prvi arg. print naredbe nije tipa int, char ili bool!", printStmt);
 		}
@@ -518,7 +522,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 
 	private boolean isValidType(Struct designatorType) {
-		if(designatorType != Tab.intType && designatorType != Tab.charType && designatorType != new Struct(Struct.Bool)) {
+		if(designatorType != Tab.intType && designatorType != Tab.charType && designatorType != boolType) {
 			return false;
 		}
 		return true;
@@ -686,7 +690,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 	
 	public void visit(FactorBoolConst factorBool) {
-		factorBool.struct = new Struct(Struct.Bool);
+		factorBool.struct = boolType;
 	}
 	
 	public void visit(FactorNoParens factorDesignator) {
@@ -695,12 +699,13 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	
 	public void visit(FactorWithActPars factorWithActPars) {
 		// TODO: Proveri da li treba stavljati nesto u STRUCT
-		if(factorWithActPars.getDesignator().obj.getKind() != Obj.Meth) {
+		if(factorWithActPars.getDesignatorForActPars().getDesignator().obj.getKind() != Obj.Meth) {
 			report_error("Poziv nije korektan! Nije metoda!", factorWithActPars);
 			return;
 		}
 		else {
-			report_info("Poziv metode " + factorWithActPars.getDesignator().obj.getName(), factorWithActPars);
+			report_info("Poziv metode " + factorWithActPars.getDesignatorForActPars().getDesignator().obj.getName(), factorWithActPars);
+			factorWithActPars.struct = factorWithActPars.getDesignatorForActPars().getDesignator().obj.getType();
 		}
 	}
 	
@@ -727,6 +732,81 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 	
 	/* ************ ActPars ************ */
+	/* TODO: Proveri da li ti je ispravka u gramatici okej */
+
+	Stack<List<Struct>> actParsStack = new Stack<>();
+	Stack<Obj> actParsCalls = new Stack<>();
+	
+	public void visit(ActParameter actParameter) {
+		// the expression of actPars, push params
+		Struct parsToAdd = actParameter.getExpr().struct;
+		
+		List<Struct> tmp = actParsStack.pop();
+		tmp.add(parsToAdd);
+		actParsStack.push(tmp);
+	}
+	
+	private String checkActParsComp(List<Struct> currList, Obj currCall) {
+		String msg = "";
+		
+		if(currCall.getLevel() != currList.size()) {
+			msg = "Broj parametara metode se ne poklapa!";
+		}
+		else {
+			// check if all params can be assigned accordingly to the declaration
+			int pos = 0;
+			
+			for(Obj obj : currCall.getLocalSymbols()) {
+				if(pos == currCall.getLevel()) break;
+				
+				// check if it could be assigned for all symbols
+				Struct s1 = currList.get(pos);
+				Struct s2 = obj.getType();
+				if(!s1.assignableTo(s2)) {
+					msg = "Parametaru na poziciji " + pos + " se ne moze dodeliti vrednost!";
+				}
+			}
+		}
+		
+		return msg;
+	}
+
+	
+	public void visit(ActParams actParams) {
+		List<Struct> currList = actParsStack.pop();
+		Obj currCall = actParsCalls.pop();
+		
+		String report = checkActParsComp(currList, currCall);
+		if(report.equals("")) {
+			// if there is no error, it's okay to call
+			return;
+		}
+		else {
+			report_error(report, actParams);
+		}
+	}
+	
+	public void visit(NoActParams noActParams) {
+		List<Struct> currList = actParsStack.pop();
+		Obj currCall = actParsCalls.pop();
+		
+		String report = checkActParsComp(currList, currCall);
+		if(report.equals("")) {
+			// if there is no error, it's okay to call
+			return;
+		}
+		else {
+			report_error(report, noActParams);
+		}
+	}
+	
+	public void visit(DesignatorForActPars parsDes) {
+		// to know when to push smth to stacks
+		Obj call = parsDes.getDesignator().obj;
+		
+		actParsCalls.push(call);
+		actParsStack.push(new ArrayList<>());
+	}
 	
 	/* ************ Expr ************ */
 	
@@ -810,6 +890,41 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	
 	/* ************ CondFact ************ */
 	
+	public void visit(CondFactMultipleExpr mulConds) {
+		int firstExprKind = mulConds.getExpr().struct.getKind();
+		int secondExprKind = mulConds.getExpr1().struct.getKind();
+		
+		// continue if left and right exprs are compatible
+		if(mulConds.getExpr().struct.compatibleWith(mulConds.getExpr1().struct)) {
+			
+			if(!(currOperator.equals(Ops.EQ_CMP) || currOperator.equals(Ops.NEQ_CMP))
+				&& (firstExprKind == Struct.Array || secondExprKind == Struct.Array)) {
+				
+					report_error("Operator unutar izraza nije == ili !=, a porede se nizovi!", mulConds);
+					mulConds.struct = Tab.noType;
+					
+			}
+			else {
+				// all check are okay
+				report_info("Provera uslova uspesna!", mulConds);
+			}
+		}
+		else {
+			report_error("Izrazi unutar uslova u izrazu nisu kompatibilni!", mulConds);
+			mulConds.struct = Tab.noType;
+		}
+	}
+	
+	public void visit(CondFactSingleExpr singleCond) {
+		if(singleCond.getExpr().struct == boolType) {
+			singleCond.struct = singleCond.getExpr().struct;
+		}
+		else {
+			report_error("Uslov u izrazu nije BOOL!", singleCond);
+			singleCond.struct = Tab.noType;
+		}
+	}
+	
 	/* ************ Term ************ */
 	
 	public void visit(TermSingleFactors termSingleFactors) {
@@ -830,25 +945,3 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

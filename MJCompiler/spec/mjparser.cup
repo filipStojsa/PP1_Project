@@ -107,11 +107,11 @@ nonterminal DeclarationList, VarDecl, VarDeclType, VarDeclList, MoreVarDeclarati
 LastVarDeclarations, ConstDecl, ConstType, ConstDeclList, ClassDecl, ClassBodyList, ClassVarDecl, InnerClassSection, MethodDeclList, 
 FormParsList, MethodVarDeclList, StatementList, IfElseEpsilon, 
 IfCondition, WhileCondition, DesignatorStatement, DesignatorList, ActPars, 
-ActParsList, Condition, CondTerm, CondFact, 
-Label, Assignop, Relop, Addop, Mulop, FormPars, FormParsDecl, ArryDesignator;
+ActParsList, Condition, CondTerm, ActParameter, DesignatorForActPars,
+Label, Assignop, Relop, Addop, Mulop, FormPars, FormParsDecl, ArryDesignator, BeginWhile, BeginBreak;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodReturnType, MethodDecl, BeginClassDecl, Designator, ForeachIdent;
-nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDeclarations, Statement, Expr, OptExtend, Factor, ForeachDesignator, ExprTermList, Term, FactorList;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDeclarations, Statement, Expr, OptExtend, Factor, ForeachDesignator, ExprTermList, Term, FactorList, CondFact;
 
 /* Grammar */
 
@@ -227,8 +227,8 @@ StatementList ::= (Statements) StatementList Statement
 Statement ::= (DesignatorStmt) DesignatorStatement SEMICOL
 			| (IfStmt) IfCondition IfElseEpsilon
 			| (IfElseStmt) IfCondition IfElseEpsilon ELSE Statement
-			| (WhileStmt) WHILE WhileCondition
-			| (BreakStmt) BREAK SEMICOL
+			| (WhileStmt) BeginWhile WhileCondition
+			| (BreakStmt) BeginBreak SEMICOL
 			| (ContinueStmt) CONTINUE SEMICOL
 			| (ReturnStmt) RETURN Expr SEMICOL
 			| (ReturnStmtNoExpr) RETURN SEMICOL
@@ -238,6 +238,10 @@ Statement ::= (DesignatorStmt) DesignatorStatement SEMICOL
 			| (PrintStmt) PRINT LPAREN Expr RPAREN SEMICOL
 			| (StatementListWithBraces) LBRACE StatementList RBRACE
 			;
+
+BeginWhile ::= (BeginWhile) WHILE;
+
+BeginBreak ::= (BeginBreak) BREAK;
 
 ForeachDesignator ::= (ForeachDesignator) Designator DOT FOREACH LPAREN;
 
@@ -279,10 +283,11 @@ ActPars ::= (ActParams) ActParsList
 			| (NoActParams) /* epsilon */
 			;
 			
-ActParsList ::= (MoreActPars) ActParsList COMMA Expr
-			| (SingleActPar) Expr
+ActParsList ::= (MoreActPars) ActParsList COMMA ActParameter
+			| (SingleActPar) ActParameter
 			;
 
+ActParameter ::= (ActParameter) Expr;
 
 /* Condition */
 
@@ -294,7 +299,7 @@ CondTerm ::= (CondFactMultiple) CondTerm AND CondFact
 			| (CondFactSingle) CondFact
 			;
 
-CondFact ::= (CondFactMultipleExpr) Expr Relop Expr
+CondFact ::= (CondFactMultipleExpr) Expr:first Relop Expr:second
 			| (CondFactSingleExpr) Expr
 			;
 
@@ -315,7 +320,7 @@ FactorList ::= (TermMultipleFactors) FactorList Mulop Factor
 			| (TermSingleFactors) Factor
 			;
 			
-Factor ::= (FactorWithActPars) Designator LPAREN ActPars RPAREN
+Factor ::= (FactorWithActPars) DesignatorForActPars LPAREN ActPars RPAREN
 		| (FactorNoParens) Designator
 		| (FactorNumConst) NUMBER
 		| (FactorCharConst) CHAR
@@ -324,6 +329,8 @@ Factor ::= (FactorWithActPars) Designator LPAREN ActPars RPAREN
 		| (FactorNewActPars) NEW Type LPAREN ActPars RPAREN  	/* OBRISI, NE TREBA TI */
 		| (FactorExpr) LPAREN Expr RPAREN
 		;
+
+DesignatorForActPars ::= (DesignatorForActPars) Designator;
 
 Label ::= (Label) IDENT;
 
