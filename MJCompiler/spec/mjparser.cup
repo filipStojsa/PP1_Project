@@ -321,7 +321,7 @@ Factor ::= (FactorWithActPars) Designator LPAREN ActPars RPAREN
 		| (FactorCharConst) CHAR
 		| (FactorBoolConst) BOOLEAN
 		| (FactorNewExpr) NEW Type LBRACKET Expr RBRACKET
-		| (FactorNewActPars) NEW Type LPAREN ActPars RPAREN
+		| (FactorNewActPars) NEW Type LPAREN ActPars RPAREN  	/* OBRISI, NE TREBA TI */
 		| (FactorExpr) LPAREN Expr RPAREN
 		;
 

@@ -738,19 +738,24 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	
 	public void visit(ExprWith negExpr) {
 		minusExpr = true;
+		// TODO: Dodaj proveru da li je int ili ne i uradi samo ovo iznad
 		
-		
+		negExpr.struct = negExpr.getExprTermList().struct;		
 	}
 	
 	public void visit(ExprTermMultiple addExpr) {
+		// TODO: Provera oba param??
 		if(addExpr.getTerm().struct != Tab.intType) {
 			report_error("Nije moguce sabirati necelobrojne vrednosti!", addExpr);
 			addExpr.struct = Tab.noType;
 		}
+		else {
+			addExpr.struct = addExpr.getTerm().struct;
+		}
 	}
 	
 	public void visit(ExptrWithout exprWithout) {
-		
+		exprWithout.struct = exprWithout.getExprTermList().struct;
 	}
 	
 	/* ************ Operators ************ */
@@ -809,6 +814,10 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	
 	public void visit(TermSingleFactors termSingleFactors) {
 		termSingleFactors.struct = termSingleFactors.getFactor().struct;
+	}
+	
+	public void visit(Term term) {
+		term.struct = term.getFactorList().struct;
 	}
 	
 	public void visit(TermMultipleFactors term) {
