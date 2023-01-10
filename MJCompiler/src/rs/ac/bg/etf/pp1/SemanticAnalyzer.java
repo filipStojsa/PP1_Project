@@ -155,6 +155,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	/* ************ Variables ************ */
 	// TODO: Da li treba da prolazi provera varijable ako njen tip ne postoji?
 	// TODO: Da li treba razdvojiti prepoznavanje za globalne i lokalne?
+	// Treba mozda!
 	
 	public boolean isVariableValid(String nameVar, SyntaxNode info) {
 		Obj node = Tab.find(nameVar);
@@ -279,11 +280,9 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	public void visit(MethodDecl methodDecl) {
 		methodDecl.obj = currentMethod;
 		
-		// TODO: Da li ove provere uopste trebaju ovde??
-		isMethodValid(currentMethod);	// used to report any errors
-		
-		// TODO: Da li proveravati overloaded metode?
-		
+		// TODO: Da li ove provere uopste trebaju ovde?? Ne, nego u runitme!
+		// isMethodValid(currentMethod);	// used to report any errors
+			
 		// set method parameter count and chain it to the table
 		currentMethod.setLevel(currentMethodParamCnt);
 		Tab.chainLocalSymbols(currentMethod);
@@ -677,7 +676,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		}
 	}
 	
-	// TODO: Sta raditi sa OPTIONAL_DESIGNATOR???
+	// TODO: Sta raditi sa OPTIONAL_DESIGNATOR??? Treba mi
 	
 	/* ************ Factors ************ */
 	
@@ -698,7 +697,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 	
 	public void visit(FactorWithActPars factorWithActPars) {
-		// TODO: Proveri da li treba stavljati nesto u STRUCT
 		if(factorWithActPars.getDesignatorForActPars().getDesignator().obj.getKind() != Obj.Meth) {
 			report_error("Poziv nije korektan! Nije metoda!", factorWithActPars);
 			return;
@@ -824,8 +822,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 	
 	public void visit(ExprTermMultiple addExpr) {
-		// TODO: Provera oba param??
-		if(addExpr.getTerm().struct != Tab.intType) {
+		if(addExpr.getTerm().struct != Tab.intType && addExpr.getExprTermList().struct != Tab.intType) {
 			report_error("Nije moguce sabirati necelobrojne vrednosti!", addExpr);
 			addExpr.struct = Tab.noType;
 		}
