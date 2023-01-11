@@ -13,7 +13,7 @@ import rs.etf.pp1.symboltable.concepts.Obj;
 import rs.etf.pp1.symboltable.concepts.Struct;
 
 public class SemanticAnalyzer extends VisitorAdaptor {
-	Struct boolType;
+	protected static Struct boolType;
 	public SemanticAnalyzer() {
 		// Redefine constructor to add boolean object
 		boolType = new Struct(Struct.Bool);

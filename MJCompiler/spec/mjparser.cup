@@ -111,7 +111,7 @@ ActParsList, Condition, CondTerm, ActParameter, DesignatorForActPars,
 Label, Assignop, Relop, Addop, Mulop, FormPars, FormParsDecl, ArryDesignator, BeginWhile, BeginBreak;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodReturnType, MethodDecl, BeginClassDecl, Designator, ForeachIdent;
-nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDeclarations, Statement, Expr, OptExtend, Factor, ForeachDesignator, ExprTermList, Term, FactorList, CondFact;
+nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDeclarations, Statement, Expr, OptExtend, Factor, ForeachDesignator, ExprTermList, Term, FactorList, CondFact, AdditionalPrint;
 
 /* Grammar */
 
@@ -233,11 +233,14 @@ Statement ::= (DesignatorStmt) DesignatorStatement SEMICOL
 			| (ReturnStmt) RETURN Expr SEMICOL
 			| (ReturnStmtNoExpr) RETURN SEMICOL
 			| (ReadStmt) READ LPAREN Designator RPAREN SEMICOL
-			| (MorePrintStmt) PRINT LPAREN Expr COMMA NUMBER RPAREN SEMICOL
 			| (ForeachStmt) ForeachDesignator ForeachIdent ARROW Statement RPAREN SEMICOL
-			| (PrintStmt) PRINT LPAREN Expr RPAREN SEMICOL
+			| (PrintStmt) PRINT LPAREN Expr AdditionalPrint RPAREN SEMICOL
 			| (StatementListWithBraces) LBRACE StatementList RBRACE
 			;
+
+AdditionalPrint ::= (WithAdditionalPrint) COMMA NUMBER:printW
+				| (NoAdditionalPrint) /* epsilon */
+				;
 
 BeginWhile ::= (BeginWhile) WHILE;
 
