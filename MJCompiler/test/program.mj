@@ -2,9 +2,15 @@
 
 program test302
 
+const int y = 5;
 {
+	
 	void main()
+	int x, y;
 	{
-		print(2);
+		x = 3;
+		print(x);
+		
+		return;
 	}
 }

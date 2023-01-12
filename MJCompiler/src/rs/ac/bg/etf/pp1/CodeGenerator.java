@@ -87,6 +87,7 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 	
 	/* ***** Print & Read ***** */
+	// TODO: Vidi da li moze da se uradi sa Print kako si ti prvobitno uradio - vidi diff
 	public void visit(PrintStmt printStmt) {
 		if(printStmt.getExpr().struct == Tab.intType || printStmt.getExpr().struct == SemanticAnalyzer.boolType) {
 			Code.put(Code.print);
@@ -126,8 +127,106 @@ public class CodeGenerator extends VisitorAdaptor {
 		Code.store(readStmt.getDesignator().obj);
 	}
 	
+	/* ***** Term ***** */
+	
+	public void visit(TermMultipleFactors term) {
+		if(term.getMulop() instanceof MultiplyOp) {
+			Code.put(Code.mul);
+		}
+		else if(term.getMulop() instanceof DivOp) {
+			Code.put(Code.div);
+		}
+		else if(term.getMulop() instanceof ModOp) {
+			Code.put(Code.rem);
+		}
+	}
+	
+	/* ***** Expr ***** */
+	
+	public void visit(ExprWith wMinus) {
+		// If the expression is negative
+		Code.put(Code.neg);
+	}
+	
+	public void visit(ExprTermMultiple exprTermMultiple) {
+		if(exprTermMultiple.getAddop() instanceof MinusOp) {
+			Code.put(Code.sub);
+		}
+		else if(exprTermMultiple.getAddop() instanceof PlusOp) {
+			Code.put(Code.add);
+		}
+	}
+	
+	/* ***** Factor ***** */
+	
+	//TODO: VELIKI PROBLEM OVDE!!!
+	/*public void visit(FactorNoParens fdesignator) {
+		Code.load(fdesignator.getDesignator().obj); 
+	}*/
+	 
+	
 	public void visit(FactorNumConst fnum) {
 		Code.loadConst(fnum.getN1());
 	}
+	
+	public void visit(FactorCharConst fchar) {
+		int asciiChar = fchar.getC1();
+		Code.loadConst(asciiChar);
+	}
+	
+	public void visit(FactorBoolConst fbool) {
+		int boolConst = fbool.getB1() ? 1 : 0;
+		Code.loadConst(boolConst);
+	}
+	
+	public void visit(FactorNewExpr farray) {
+		// TODO: zasto ovde 1 i 0??
+		if(farray.struct.getElemType() == Tab.charType) {
+			Code.put(Code.newarray);
+			Code.put(0);
+		}
+		else {
+			Code.put(Code.newarray);
+			Code.put(1);
+		}
+	}
+	
+	/* ***** Designators ***** */
+	
+	// TODO: Da li mi treba? Treba ovde jos posla...
+	/*
+	 * public void visit(DesignatorIdent designatorIdent) {
+	 * 
+	 * }
+	 */
+	
+	public void visit(ArryDesignator arrayDesignator) {
+		Code.load(arrayDesignator.getDesignator().obj);
+	}
+	
+	/* ***** DesignatorStatement ***** */
+	
+	public void visit(DesignatorAssignop designatorAssignop) {
+		Code.store(designatorAssignop.getDesignator().obj);
+	}
+	
+	public void visidDesignatorIncDec(Obj object, int code) {
+		Code.put(Code.dup2);
+		Code.load(object);
+		Code.loadConst(1);
+		Code.put(code);
+		Code.store(object);
+	}
+	
+	public void visit(DesignatorIncrement designatorIncrement) {
+		Obj designatorIncObj = designatorIncrement.getDesignator().obj;
+		visidDesignatorIncDec(designatorIncObj, Code.add);
+	}
+	
+	public void visit(DesignatorDecrement designatorDecrement) {
+		Obj designatorDecObj = designatorDecrement.getDesignator().obj;
+		visidDesignatorIncDec(designatorDecObj, Code.sub);
+	}
+	
 	
 }
