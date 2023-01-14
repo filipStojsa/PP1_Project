@@ -108,7 +108,7 @@ LastVarDeclarations, ConstDecl, ConstType, ConstDeclList, ClassDecl, ClassBodyLi
 FormParsList, MethodVarDeclList, StatementList, IfElseEpsilon, 
 IfCondition, WhileCondition, DesignatorStatement, DesignatorList, ActPars, 
 ActParsList, Condition, CondTerm, ActParameter, DesignatorForActPars,
-Label, Assignop, Relop, Addop, Mulop, FormPars, FormParsDecl, ArryDesignator, BeginWhile, BeginBreak;
+Label, Assignop, Relop, Addop, Mulop, FormPars, FormParsDecl, ArryDesignator, BeginWhile, BeginBreak, DesignatorForFunc;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodReturnType, MethodDecl, BeginClassDecl, Designator, ForeachIdent;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDeclarations, Statement, Expr, OptExtend, Factor, ForeachDesignator, ExprTermList, Term, FactorList, CondFact, AdditionalPrint;
@@ -263,11 +263,13 @@ WhileCondition ::= (WhileCondition) LPAREN Condition RPAREN Statement;
 
 DesignatorStatement ::= (DesignatorAssignop) Designator Assignop Expr
 					| (ErrDesignatorStatement) error
-					| (DesignatorActPars) Designator LPAREN ActPars RPAREN		/*ActPars mora biti epsilon*/
+					| (DesignatorActPars) DesignatorForActPars LPAREN ActPars RPAREN		/*ActPars mora biti epsilon*/
 					| (DesignatorIncrement) Designator INCREMENT
 					| (DesignatorDecrement) Designator DECREMENT
 					| (DesignatorsList) LBRACKET DesignatorList RBRACKET EQ Designator
 					;
+
+DesignatorForFunc ::= (DesignatorForFunc) Designator;
 
 Designator ::= (DesignatorForFields) Designator DOT IDENT
 			| (DesignatorForExpression) ArryDesignator LBRACKET Expr RBRACKET

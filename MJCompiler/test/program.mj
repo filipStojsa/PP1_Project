@@ -4,13 +4,22 @@ program test302
 
 const int y = 5;
 {
+	void f()
+	{
+		print(5);
+	}
 	
 	void main()
-	int x, y;
+	int x, z;
 	{
 		x = 3;
+		x++;
+		z = 4;
+		z--;
 		print(x);
-		
+		print('c');
+		print(z);
+		f();
 		return;
 	}
 }

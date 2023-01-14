@@ -1,5 +1,7 @@
 package rs.ac.bg.etf.pp1;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 import rs.ac.bg.etf.pp1.ast.*;
@@ -18,9 +20,19 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 	
 	/* ***** Helper fields ***** */
-	Stack<Obj> actParsCalls = new Stack<>();
+	Stack<Obj> funcCalls = new Stack<>();
 	Obj currMethod = null;
 	boolean isReturnStmtFound = false;
+	
+	/* Stacks */
+	
+	Stack<List<Integer>> andPatchs = new Stack<>();
+	Stack<List<Integer>> orPatchs = new Stack<>();
+	Stack<List<Integer>> elsePatchs = new Stack<>();
+	Stack<List<Integer>> breakPatchs = new Stack<>();
+	
+	Stack<Integer> loopsStack = new Stack<>();
+	Stack<Integer> foreachStack = new Stack<>();
 	
 	/* ***** Methods ***** */
 	
@@ -83,7 +95,16 @@ public class CodeGenerator extends VisitorAdaptor {
 	// ReturnStmt is found
 	public void visit(ReturnStmt returnStmt) {
 		isReturnStmtFound = true;
-		// TODO: Staviti nes na Code??
+		
+		Code.put(Code.exit);
+		Code.put(Code.return_);
+	}
+	
+	public void visit(ReturnStmtNoExpr returnStmt) {
+		isReturnStmtFound = true;
+		
+		Code.put(Code.exit);
+		Code.put(Code.return_);
 	}
 	
 	/* ***** Print & Read ***** */
@@ -159,10 +180,9 @@ public class CodeGenerator extends VisitorAdaptor {
 	
 	/* ***** Factor ***** */
 	
-	//TODO: VELIKI PROBLEM OVDE!!!
-	/*public void visit(FactorNoParens fdesignator) {
+	public void visit(FactorNoParens fdesignator) {
 		Code.load(fdesignator.getDesignator().obj); 
-	}*/
+	}
 	 
 	
 	public void visit(FactorNumConst fnum) {
@@ -191,6 +211,39 @@ public class CodeGenerator extends VisitorAdaptor {
 		}
 	}
 	
+	// Push to stack designator for function call
+	public void visit(DesignatorForActPars factorFuncCall) {
+		funcCalls.push(factorFuncCall.getDesignator().obj);
+	}
+	
+	// Actual call of function from factors
+	public void visit(FactorWithActPars funcCall) {
+		funcCalls.pop();
+
+		String fName = funcCall.getDesignatorForActPars().getDesignator().obj.getName();
+		int fAdr = funcCall.getDesignatorForActPars().getDesignator().obj.getAdr();
+
+		switch (fName) {
+		case "ord":
+			Code.put(Code.call);
+			break;
+
+		case "len":
+			Code.put(Code.arraylength);
+			break;
+
+		case "chr":
+			Code.put(Code.call);
+			break;
+
+		default:
+			break;
+		}
+		
+		Code.put2(1 + fAdr - Code.pc);
+		
+	}
+	
 	/* ***** Designators ***** */
 	
 	// TODO: Da li mi treba? Treba ovde jos posla...
@@ -211,7 +264,8 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 	
 	public void visidDesignatorIncDec(Obj object, int code) {
-		Code.put(Code.dup2);
+		// TODO: Da li ovde treba dup2 ili ne?
+		//Code.put(Code.dup2);
 		Code.load(object);
 		Code.loadConst(1);
 		Code.put(code);
@@ -227,6 +281,144 @@ public class CodeGenerator extends VisitorAdaptor {
 		Obj designatorDecObj = designatorDecrement.getDesignator().obj;
 		visidDesignatorIncDec(designatorDecObj, Code.sub);
 	}
+	
+	public void visit(DesignatorForFunc factorFuncCall) {
+		funcCalls.push(factorFuncCall.getDesignator().obj);
+	}
+	
+	// The actual function call itself
+	public void visit(DesignatorActPars funcCall) {
+		funcCalls.pop();
+
+		String fName = funcCall.getDesignatorForActPars().getDesignator().obj.getName();
+		int fAdr = funcCall.getDesignatorForActPars().getDesignator().obj.getAdr();
+
+		switch (fName) {
+		case "ord":
+			Code.put(Code.call);
+			break;
+
+		case "len":
+			Code.put(Code.arraylength);
+			break;
+
+		case "chr":
+			Code.put(Code.call);
+			break;
+
+		default:
+			break;
+		}
+		
+		int tmp = fAdr - Code.pc;
+		Code.put2(tmp);
+		
+		if(funcCall.getDesignatorForActPars().getDesignator().obj.getType() == Tab.noType) {
+			Code.put(Code.pop);
+		}
+		// Popped form calls stack on top!
+	}
+	
+	// Assignment to arrays
+	
+	List<Obj> listToAssing = new ArrayList<>();
+	
+	public void visit(DesignatorsList designatorsList) {
+		int numOfParams = listToAssing.size();
+		Code.loadConst(numOfParams);
+		
+		Obj rightDesignator = designatorsList.getDesignator().obj;
+		Code.load(rightDesignator);
+		
+		Code.put(Code.arraylength);
+		
+		Code.put(Code.jcc + Code.le);
+		
+		Code.put(5);
+		Code.put(Code.trap);
+		Code.put(2);
+		
+		int i = 0;
+		while(i < numOfParams) {
+			Obj node = listToAssing.get(i);
+			
+			if(node == null) {
+				i++;
+			}
+			else {
+				// get value of right side
+				Code.load(rightDesignator);
+				
+				// load position of obj in index
+				int j = listToAssing.indexOf(node);
+				Code.loadConst(i);
+				
+				// put function code
+				Code.put(Code.aload);
+				
+				// store modified objects
+				Code.store(node);
+			}
+		}
+		
+		listToAssing.clear();
+		
+	}
+	
+	// TODO: Proveri ovo da li valja
+	public void visit(MoreDesignators moreDesignators) {
+		Obj obj = moreDesignators.getDesignator().obj;
+		listToAssing.add(obj);
+	}
+	
+	public void visit(SingleDesignator singleDesignator) {
+		Obj obj = singleDesignator.getDesignator().obj;
+		listToAssing.add(obj);
+	}
+	
+	/* ***** CondFact ***** */
+	
+	public void visit(CondFactMultipleExpr condFactMultipleExpr) {
+		// TODO: Proveri da li umeces ono gde treba sta da se patchuje kako treba
+		List<Integer> tmp = andPatchs.pop();
+		tmp.add(Code.pc + 1);
+		andPatchs.push(tmp);
+		
+		Relop relop = condFactMultipleExpr.getRelop();
+		
+		if(relop instanceof EqOp) {
+			Code.putFalseJump(Code.eq, 0);
+		}
+		else if(relop instanceof NeqOp) {
+			Code.putFalseJump(Code.ne, 0);
+		}
+		else if(relop instanceof GreaterOp) {
+			Code.putFalseJump(Code.gt, 0);
+		}
+		else if(relop instanceof GreaterEqOp) {
+			Code.putFalseJump(Code.ge, 0);
+		}
+		else if(relop instanceof LessOp) {
+			Code.putFalseJump(Code.lt, 0);
+		}
+		else if(relop instanceof LessEqOp) {
+			Code.putFalseJump(Code.le, 0);
+		}
+	}
+	
+	// TODO: Gledaj malo da promenis ovo :)
+	public void visit(CondFactSingleExpr condFactSingleExpr) {
+		Code.loadConst(1);
+		
+		List<Integer> tmp = andPatchs.pop();
+		tmp.add(Code.pc + 1);
+		andPatchs.push(tmp);
+		
+		Code.putFalseJump(Code.eq, 0);
+	}
+	
+	/* ***** CondTerm ***** */
+	
 	
 	
 }

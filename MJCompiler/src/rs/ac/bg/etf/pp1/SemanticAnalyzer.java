@@ -647,9 +647,9 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 	
 	public void visit(DesignatorActPars designatorActPars) {
-		if(designatorActPars.getDesignator().obj.getKind() == Obj.Meth) {
-			if(globalMethods.contains(designatorActPars.getDesignator().obj)) {
-				report_info("Pozvana funkcija " + designatorActPars.getDesignator().obj.getName(), designatorActPars);
+		if(designatorActPars.getDesignatorForActPars().getDesignator().obj.getKind() == Obj.Meth) {
+			if(globalMethods.contains(designatorActPars.getDesignatorForActPars().getDesignator().obj)) {
+				report_info("Pozvana funkcija " + designatorActPars.getDesignatorForActPars().getDesignator().obj.getName(), designatorActPars);
 			}
 			else {
 				report_error("Poziv metode nije korektan - metoda se ne nalazi u listi!", designatorActPars);
