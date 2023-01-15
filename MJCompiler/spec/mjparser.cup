@@ -225,8 +225,8 @@ StatementList ::= (Statements) StatementList Statement
 				;
 
 Statement ::= (DesignatorStmt) DesignatorStatement SEMICOL
-			| (IfStmt) IfCondition HelperCondFact IfElseEpsilon
-			| (IfElseStmt) IfCondition HelperCondFact IfElseEpsilon ELSE Statement
+			| (IfStmt) IfCondition
+			| (IfElseStmt) IfCondition ELSE IfElseEpsilon Statement
 			| (WhileStmt) BeginWhile WhileCondition
 			| (BreakStmt) BeginBreak SEMICOL
 			| (ContinueStmt) CONTINUE SEMICOL
@@ -252,8 +252,8 @@ ForeachIdent ::= (ForeachIdent) IDENT:name;
 
 IfElseEpsilon ::= (IfElseEpsilon) /* epsilon */;
 
-IfCondition ::= (IfConditionOk) IF IfStartHelper Condition RPAREN Statement
-				| (ErrIfCondition) IF LPAREN error RPAREN
+IfCondition ::= (IfConditionOk) IF IfStartHelper Condition HelperCondTerm RPAREN Statement
+				| (ErrIfCondition) IF IfStartHelper LPAREN error RPAREN
 				;
 
 IfStartHelper ::= (IfStartHelper) LPAREN;
@@ -298,11 +298,11 @@ ActParameter ::= (ActParameter) Expr;
 
 /* Condition */
 
-Condition ::= (CondTermMultiple) Condition OR CondTerm
+Condition ::= (CondTermMultiple) Condition HelperCondFact OR CondTerm
 			| (ContTermSingle) CondTerm
 			;
 			
-CondTerm ::= (CondFactMultiple) CondTerm HelperCondTerm AND CondFact
+CondTerm ::= (CondFactMultiple) CondTerm AND CondFact
 			| (CondFactSingle) CondFact
 			;
 
