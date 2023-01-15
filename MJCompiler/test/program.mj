@@ -12,14 +12,12 @@ const int y = 5;
 	void main()
 	int x, z;
 	{
-		x = 3;
-		x++;
-		z = 4;
-		z--;
-		print(x);
-		print('c');
-		print(z);
-		f();
+		x = 5;
+		z = 3;
+		if(x > z)
+		{
+			print(1);
+		}
 		return;
 	}
 }

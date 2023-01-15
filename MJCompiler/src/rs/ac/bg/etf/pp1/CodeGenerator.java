@@ -351,7 +351,7 @@ public class CodeGenerator extends VisitorAdaptor {
 				
 				// load position of obj in index
 				int j = listToAssing.indexOf(node);
-				Code.loadConst(i);
+				Code.loadConst(j);
 				
 				// put function code
 				Code.put(Code.aload);
@@ -419,6 +419,78 @@ public class CodeGenerator extends VisitorAdaptor {
 	
 	/* ***** CondTerm ***** */
 	
+	public void visit(HelperCondFact helperCondFact) {
+		// Helper nonterminal after If Conditions
+		List<Integer> orTmp = orPatchs.pop();
+		orTmp.add(Code.pc + 1);
+		orPatchs.push(orTmp);
+		
+		Code.putJump(0);
+		
+		List<Integer> andTmp = andPatchs.pop();
+		while(!andTmp.isEmpty()) {
+			Code.fixup(andTmp.remove(0));
+		}
+		
+		// Push empty list on the stack
+		andPatchs.push(andTmp);
+	}
 	
+	public void visit(HelperCondTerm helperCondTerm) {
+		// Helper nonterminal before OR call
+		List<Integer> orTmp = orPatchs.pop();
+		while(!orTmp.isEmpty()) {
+			Code.fixup(orTmp.remove(0));
+		}
+		
+		// Push empty list on the stack
+		orPatchs.push(orTmp);
+	}
+	
+	public void visit(IfElseEpsilon ifElseEpsilon) {
+		// Helper nonterminal to patch conditions
+		List<Integer> elseTmp = elsePatchs.pop();
+		elseTmp.add(Code.pc + 1);
+		elsePatchs.push(elseTmp);
+		
+		Code.putJump(0);
+		
+		List<Integer> andTmp = andPatchs.pop();
+		while(!andTmp.isEmpty()) {
+			Code.fixup(andTmp.remove(0));
+		}
+		
+		// Push empty list on the stack
+		andPatchs.push(andTmp);
+	}
+	
+	/* ***** If-Else ***** */
+	
+	public void visit(IfStartHelper ifStartHelper) {
+		andPatchs.push(new ArrayList<>());
+		orPatchs.push(new ArrayList<>());
+		
+		elsePatchs.push(new ArrayList<>());
+	}
+	
+	public void visit(IfStmt ifStmt) {
+		// Fixup ands
+		List<Integer> andTmp = andPatchs.pop();
+		elsePatchs.pop();
+		orPatchs.pop();
+		while(!andTmp.isEmpty()) {
+			Code.fixup(andTmp.remove(0));
+		}
+	}
+	
+	public void visit(IfElseStmt ifElseStmt) {
+		// Fixup elses
+		List<Integer> elseTmp = elsePatchs.pop();
+		andPatchs.pop();
+		orPatchs.pop();
+		while(!elseTmp.isEmpty()) {
+			Code.fixup(elseTmp.remove(0));
+		}
+	}
 	
 }

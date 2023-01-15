@@ -105,9 +105,9 @@ terminal ARROW;
 
 nonterminal DeclarationList, VarDecl, VarDeclType, VarDeclList, MoreVarDeclarations, 
 LastVarDeclarations, ConstDecl, ConstType, ConstDeclList, ClassDecl, ClassBodyList, ClassVarDecl, InnerClassSection, MethodDeclList, 
-FormParsList, MethodVarDeclList, StatementList, IfElseEpsilon, 
+FormParsList, MethodVarDeclList, StatementList, IfElseEpsilon, IfStartHelper,
 IfCondition, WhileCondition, DesignatorStatement, DesignatorList, ActPars, 
-ActParsList, Condition, CondTerm, ActParameter, DesignatorForActPars,
+ActParsList, Condition, CondTerm, ActParameter, DesignatorForActPars, HelperCondFact, HelperCondTerm,
 Label, Assignop, Relop, Addop, Mulop, FormPars, FormParsDecl, ArryDesignator, BeginWhile, BeginBreak, DesignatorForFunc;
 
 nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodReturnType, MethodDecl, BeginClassDecl, Designator, ForeachIdent;
@@ -225,8 +225,8 @@ StatementList ::= (Statements) StatementList Statement
 				;
 
 Statement ::= (DesignatorStmt) DesignatorStatement SEMICOL
-			| (IfStmt) IfCondition IfElseEpsilon
-			| (IfElseStmt) IfCondition IfElseEpsilon ELSE Statement
+			| (IfStmt) IfCondition HelperCondFact IfElseEpsilon
+			| (IfElseStmt) IfCondition HelperCondFact IfElseEpsilon ELSE Statement
 			| (WhileStmt) BeginWhile WhileCondition
 			| (BreakStmt) BeginBreak SEMICOL
 			| (ContinueStmt) CONTINUE SEMICOL
@@ -252,9 +252,11 @@ ForeachIdent ::= (ForeachIdent) IDENT:name;
 
 IfElseEpsilon ::= (IfElseEpsilon) /* epsilon */;
 
-IfCondition ::= (IfConditionOk) IF LPAREN Condition RPAREN Statement
+IfCondition ::= (IfConditionOk) IF IfStartHelper Condition RPAREN Statement
 				| (ErrIfCondition) IF LPAREN error RPAREN
 				;
+
+IfStartHelper ::= (IfStartHelper) LPAREN;
 
 WhileCondition ::= (WhileCondition) LPAREN Condition RPAREN Statement;
 
@@ -300,9 +302,12 @@ Condition ::= (CondTermMultiple) Condition OR CondTerm
 			| (ContTermSingle) CondTerm
 			;
 			
-CondTerm ::= (CondFactMultiple) CondTerm AND CondFact
+CondTerm ::= (CondFactMultiple) CondTerm HelperCondTerm AND CondFact
 			| (CondFactSingle) CondFact
 			;
+
+HelperCondTerm ::= (HelperCondTerm) /* epsilon */;
+HelperCondFact ::= (HelperCondFact) /* epsilon */;
 
 CondFact ::= (CondFactMultipleExpr) Expr:first Relop Expr:second
 			| (CondFactSingleExpr) Expr
