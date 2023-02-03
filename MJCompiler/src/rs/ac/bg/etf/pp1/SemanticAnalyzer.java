@@ -168,11 +168,13 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		}
 	}
 	
+	// TODO: NEKA GRESKA JE VEROVATNO OVDE!!!
 	// Variable arrays
 	public void visit(LastVarDeclArray lastVarDeclArray) {
 		String name = lastVarDeclArray.getNameVar();
 		if(isVariableValid(name, lastVarDeclArray)) {
-			Tab.insert(Obj.Var, name, new Struct(Struct.Array, currType));
+			Struct tmp = new Struct(Struct.Array, currType);
+			Tab.insert(Obj.Var, name, tmp);
 			report_info("Uspesna deklaracija niza " + name, lastVarDeclArray);
 		}
 		else return;
@@ -445,7 +447,8 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		nestedLoops++;
 		
 		// foreach can't be used on non arrays
-		int kind = foreachDesignator.getDesignator().obj.getKind();
+		int kind = foreachDesignator.getDesignator().obj.getType().getKind();
+		Obj tmp = foreachDesignator.getDesignator().obj;
 		if(kind == Struct.Array) {
 			// set the corresponding struct to statement
 			foreachDesignator.struct = foreachDesignator.getDesignator().obj.getType().getElemType();

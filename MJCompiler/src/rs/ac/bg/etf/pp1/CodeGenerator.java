@@ -226,6 +226,8 @@ public class CodeGenerator extends VisitorAdaptor {
 		switch (fName) {
 		case "ord":
 			Code.put(Code.call);
+			Code.put2(1 + fAdr - Code.pc);
+
 			break;
 
 		case "len":
@@ -234,13 +236,15 @@ public class CodeGenerator extends VisitorAdaptor {
 
 		case "chr":
 			Code.put(Code.call);
+			Code.put2(1 + fAdr - Code.pc);
+
 			break;
 
 		default:
 			break;
 		}
 		
-		Code.put2(1 + fAdr - Code.pc);
+		// Code.put2(1 + fAdr - Code.pc);
 		
 	}
 	
@@ -334,7 +338,7 @@ public class CodeGenerator extends VisitorAdaptor {
 		
 		Code.put(Code.jcc + Code.le);
 		
-		Code.put(5);
+		Code.put2(5);
 		Code.put(Code.trap);
 		Code.put(2);
 		
@@ -469,7 +473,6 @@ public class CodeGenerator extends VisitorAdaptor {
 	public void visit(IfStartHelper ifStartHelper) {
 		andPatchs.push(new ArrayList<>());
 		orPatchs.push(new ArrayList<>());
-		
 		elsePatchs.push(new ArrayList<>());
 	}
 	
@@ -494,5 +497,141 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 	
 	/* ***** Loops ***** */
+	
+	void patchCodeFixup(List<Integer> patchList) {
+		for(int i = 0; i < patchList.size(); i++) {
+			int fixupAdr = 0;
+			fixupAdr = patchList.get(i);
+			
+			Code.fixup(fixupAdr);
+		}
+	}
+	
+	// While loop ends
+	public void visit(WhileStmt whileStmt) {
+		int whileFromStackAdr = 0;
+		whileFromStackAdr = loopsStack.pop();
+		
+		Code.putJump(whileFromStackAdr);
+		
+		// Patch and jumps
+		List<Integer> andTmpList = andPatchs.pop();
+		patchCodeFixup(andTmpList);
+		
+		// Patch break jumps
+		List<Integer> breakTmpList = breakPatchs.pop();
+		patchCodeFixup(breakTmpList);
+		
+		// Pop two other stacks
+		orPatchs.pop();
+		elsePatchs.pop();
+	}
+	
+	// While loop starts
+	public void visit(BeginWhile beginWhile) {
+		int whilePcAdress = 0;
+		whilePcAdress = Code.pc;
+		
+		loopsStack.push(whilePcAdress);
+		
+		breakPatchs.push(new ArrayList<>());
+		elsePatchs.push(new ArrayList<>());
+		andPatchs.push(new ArrayList<>());
+		orPatchs.push(new ArrayList<>());
+	}
+	
+	// Break and Continue ends
+	public void visit(ContinueStmt continueStmt) {
+		int lastWhileAdr = loopsStack.pop();
+		Code.putJump(lastWhileAdr);
+		loopsStack.push(lastWhileAdr);
+	}
+	
+	public void visit(BreakStmt breakStmt) {
+		List<Integer> breakList = breakPatchs.pop();
+		int adressToAdd = Code.pc + 1;
+		breakList.add(adressToAdd);
+		breakPatchs.push(breakList);
+		
+		Code.putJump(0);
+	}
+	
+	// Foreach
+	
+	public void visit(ForeachStmt foreachStmt) {
+		int condAdr = 0;
+		condAdr = loopsStack.pop();	// This is address of foreach
+		Code.putJump(condAdr);
+		
+		int fixupAdr = 0;
+		fixupAdr = foreachStack.pop();
+		Code.fixup(fixupAdr);		// In place of false jump bellow
+		
+		List<Integer> breaksList = breakPatchs.pop();
+		patchCodeFixup(breaksList);
+		
+		// Pop the remaining
+		Code.put(Code.pop);
+		Code.put(Code.pop);
+	}
+	
+	public void visit(ForeachDesignator foreachDesignator) {
+		Obj designatorNode = null;
+		designatorNode = foreachDesignator.getDesignator().obj;
+		Code.load(designatorNode);
+		
+		int arrayAdr = -1;
+		Code.loadConst(arrayAdr);
+		
+		// Push foreach to loop stack
+		int foreachAdr = Code.pc;
+		loopsStack.push(foreachAdr);
+		breakPatchs.push(new ArrayList<>());
+		
+		codeManipulationForeach();
+		// Expression stack: arrAdr, i, i, arrLen
+		
+		int passForeach = Code.pc + 1;
+		foreachStack.push(passForeach);
+		
+		// If we didn't go through whole arr, go to top
+		Code.putFalseJump(Code.lt, 0);
+		Code.put(Code.dup2);
+		
+		Obj node = null;
+		
+		if(foreachDesignator.getParent() instanceof ForeachStmt) {
+			node = ((ForeachStmt)foreachDesignator.getParent()).getForeachIdent().obj;
+			
+			if(node.getType() != Tab.charType) {
+				Code.put(Code.baload);
+			}
+			else {
+				Code.put(Code.aload);
+			}
+			
+			Code.store(node);
+		}
+		
+		// You shouldn't be here...
+	}
+
+	private void codeManipulationForeach() {
+		
+		// Load consts TODO: Da ti objasne ovo
+		Code.loadConst(1);
+		Code.put(Code.add);
+    	Code.put(Code.dup2);
+    	Code.put(Code.pop);
+    	
+    	// Put array length - for num of iterations
+    	Code.put(Code.arraylength);
+    	
+    	Code.put(Code.dup2);
+    	Code.put(Code.pop);
+    	
+    	Code.put(Code.dup_x1);
+    	Code.put(Code.pop);
+	}
 	
 }
