@@ -168,7 +168,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		}
 	}
 	
-	// TODO: NEKA GRESKA JE VEROVATNO OVDE!!!
 	// Variable arrays
 	public void visit(LastVarDeclArray lastVarDeclArray) {
 		String name = lastVarDeclArray.getNameVar();
@@ -225,7 +224,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		Struct returnType = Tab.noType;
 		currentMethodName = methodRetVoid.getNameMeth();
 		if(!isFirstGlobalMethodDeclaration(currentMethodName)) {
-			// TODO: Da li otvarati novi scope ili ne?
 			currentMethod = Tab.noObj;
 			methodRetVoid.obj = Tab.noObj;
 			return;	
@@ -244,7 +242,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		Struct returnType = methodRetType.getType().struct;
 		currentMethodName = methodRetType.getNameMeth();
 		if(!isFirstGlobalMethodDeclaration(currentMethodName)) {
-			// TODO: Da li otvarati novi scope ili ne?
 			currentMethod = Tab.noObj;
 			methodRetType.obj = Tab.noObj;
 			return;			
@@ -282,10 +279,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	public void visit(MethodDecl methodDecl) {
 		methodDecl.obj = currentMethod;
 		
-		// TODO: Da li ove provere uopste trebaju ovde?? Ne, nego u runitme!
-		// isMethodValid(currentMethod);	// used to report any errors
-			
-		// set method parameter count and chain it to the table
 		currentMethod.setLevel(currentMethodParamCnt);
 		Tab.chainLocalSymbols(currentMethod);
 		
@@ -702,9 +695,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 			report_error("Promenljiva sa desne strane nije niz!", designatorsList);
 		}
 	}
-	
-	// TODO: Sta raditi sa OPTIONAL_DESIGNATOR??? Treba mi
-	
+		
 	/* ************ Factors ************ */
 	
 	public void visit(FactorNumConst factorNum) {
@@ -739,7 +730,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 	
 	public void visit(FactorNewActPars factorNewActPars) {
-		// TODO: Da li tebi FactorNewActPars tj poziv NEW metode za klasu treba uopste?
+		// TODO: Poziv NEW operatora - C nivo
 		int factorKind = factorNewActPars.getType().struct.getKind();
 	}
 	
@@ -757,7 +748,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 	
 	/* ************ ActPars ************ */
-	/* TODO: Proveri da li ti je ispravka u gramatici okej */
 
 	Stack<List<Struct>> actParsStack = new Stack<>();
 	Stack<Obj> actParsCalls = new Stack<>();
@@ -839,7 +829,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	
 	public void visit(ExprWith negExpr) {
 		minusExpr = true;
-		// TODO: Dodaj proveru da li je int ili ne i uradi samo ovo iznad
 		if(negExpr.getExprTermList() instanceof ExprTermSingle) {
 			negExpr.struct = negExpr.getTerm().struct;
 		}

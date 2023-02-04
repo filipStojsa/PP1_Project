@@ -108,7 +108,7 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 	
 	/* ***** Print & Read ***** */
-	// TODO: Vidi da li moze da se uradi sa Print kako si ti prvobitno uradio - vidi diff
+	
 	public void visit(PrintStmt printStmt) {
 		if(printStmt.getExpr().struct == Tab.intType || printStmt.getExpr().struct == SemanticAnalyzer.boolType) {
 			Code.put(Code.print);
@@ -252,15 +252,7 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 	
 	/* ***** Designators ***** */
-	
-	// TODO: Da li mi treba? Treba ovde jos posla...
-	public void visit(DesignatorIdent designatorIdent) { 
-//		if(designatorIdent.obj.getKind() == Obj.Meth) {
-//			if(designatorIdent.obj.get)
-//		}
-	}
-	 
-	
+
 	public void visit(ArryDesignator arrayDesignator) {
 		Code.load(arrayDesignator.getDesignator().obj);
 	}
@@ -376,7 +368,6 @@ public class CodeGenerator extends VisitorAdaptor {
 		
 	}
 	
-	// TODO: Proveri ovo da li valja
 	public void visit(MoreDesignators moreDesignators) {
 		OptDesignator optDes = moreDesignators.getOptDesignator();
 		if(optDes instanceof OptDesignatorExsists) {
@@ -402,7 +393,6 @@ public class CodeGenerator extends VisitorAdaptor {
 	/* ***** CondFact ***** */
 	
 	public void visit(CondFactMultipleExpr condFactMultipleExpr) {
-		// TODO: Proveri da li umeces ono gde treba sta da se patchuje kako treba
 		List<Integer> tmp = andPatchs.pop();
 		tmp.add(Code.pc + 1);
 		andPatchs.push(tmp);
@@ -429,12 +419,16 @@ public class CodeGenerator extends VisitorAdaptor {
 		}
 	}
 	
-	// TODO: Gledaj malo da promenis ovo :)
 	public void visit(CondFactSingleExpr condFactSingleExpr) {
 		Code.loadConst(1);
 		
-		List<Integer> tmp = andPatchs.pop();
-		tmp.add(Code.pc + 1);
+		List<Integer> tmp = null;
+		tmp = andPatchs.pop();
+		
+		int adrAdd = 0;
+		adrAdd = Code.pc + 1;
+		
+		tmp.add(adrAdd);
 		andPatchs.push(tmp);
 		
 		Code.putFalseJump(Code.eq, 0);
