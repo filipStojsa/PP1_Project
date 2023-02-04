@@ -1,65 +1,103 @@
-// Test301
+//Test 302
 
-program test301
+program test302
 
-	const int nula = 0;
-	const int jedan = 1;
-	const int pet = 5;
+const int jedan = 1;
 
-	int niz[], niz2[], a, b;
-	char nizch[];
-	
+int i;
+bool ibool;
+
+int niz2;
+
+int niz[];
+int a, curr;
+
 {
-	void main()	
-		int bodovi;
-		bool bt;
+	
+	int sum(int z, int d)
 	{
-		bodovi = 0;
-		bodovi++;
-		bodovi = bodovi + jedan;
-		bodovi = bodovi * pet;
-		bodovi--;
-		print(bodovi);
-			
+		return z + d;
+	}
+	
+
+	int inkrement(int a, int inc) 
+		int pom; 
+	{
+		if(inc == jedan) pom = 1;
+		else if(inc == 2) pom = a;
+
+		return sum(a,pom);
+	}
+	
+	bool verify() {
+		print('v');
+		return false;
+	}	
+	
+	void main()
+	{
 		
+		if(1!=1) print(-6);
+		else print(0);  
+			
+		ibool = false;
+		i = 0;
+		while(i < 5){
+			if(i == 2) ibool = true;
+			i++;
+		}
+		
+		if(ibool)
+			if(i == 5) print(1);
+			else print(-1); 	
+		a = 2;	
 		niz = new int[3];
-		niz[nula] = jedan;
-		niz[1] = 2;
-		niz[niz[jedan]] = niz[niz[0]] * 3;
-		bodovi = niz[2]/niz[0];
-		print(bodovi);
-		print(niz[2]);
+		niz[0] = 1 * a;
+		niz[1] = 2 * a;
+		niz[2] = sum(niz[1], niz[0]) * a + 1;
+		if(verify() || niz[2] == 4) print(ord('A')); 
+		else print(ord('a'));
 		
+		print(eol);
+		i = 0;
+		while (i < 10) {
+			if(i == 3)
+			{
+				i++;
+				continue;
+			}
+			if(i == 4) break;
+			i = inkrement(i, 1);
+		}
 		
-		[a,b] = niz;
-		print(a);	// niz[0] -> 1
-		print(b);	// niz[1] -> 2
+		if(i == 3 && verify()) print(-4);
+		else print(4);  
 		
-		
-		[,a,] = niz;
-		print(a);	// niz[1] -> 2
-
-		niz2 = new int[2];
-		[niz2[0],,niz2[niz[nula]]] = niz;
-
-		print(niz2[0]);	// niz[0] -> 1
-		print(niz2[1]); // niz[2] -> 6 
-		
-		// [niz2[0],,,niz2[niz[nula]]] = niz; // runtime error!
-		
-		nizch = new char[3];
-		nizch[0] = 'a';
-		nizch[jedan] = 'b';
-		nizch[pet - 3] = 'c';
-		print(nizch[1]);
-		print(nizch[jedan * 2]);
+		read(niz[0]);
+		read(niz[1]);
+		read(niz[2]);
+		print(eol);
+		print(sum(sum(niz[0], niz[1]), niz[2])); 
 			
+		print(eol); 
+		print(inkrement(niz[2], 2));
 		
-		read(bodovi);
-		bodovi = -bodovi + (pet * a / 2 - jedan) * bodovi - (3 % 2 + 3 * 2 - 3); 
-		print(bodovi);
-			
+		a = 3;
+		i = 0;
+		while (i < 3){
+			niz[i] = niz[i] * 2 * a;
+			i++;
+		}
+		
+		niz.foreach(curr => print(curr););
+		print(eol);
+		
+		niz2 = 0;
+		niz.foreach(curr => {
+			niz2 = niz2 + curr * curr;
+		});
+		print(niz2);
+	
 	}
 }
-
 

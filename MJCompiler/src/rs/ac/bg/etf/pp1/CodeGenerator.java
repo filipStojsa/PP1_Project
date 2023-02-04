@@ -226,8 +226,8 @@ public class CodeGenerator extends VisitorAdaptor {
 
 		switch (fName) {
 		case "ord":
-			Code.put(Code.call);
-			Code.put2(1 + fAdr - Code.pc);
+			// Code.put(Code.call);
+			// Code.put2(1 + fAdr - Code.pc);
 
 			break;
 
@@ -236,12 +236,14 @@ public class CodeGenerator extends VisitorAdaptor {
 			break;
 
 		case "chr":
-			Code.put(Code.call);
-			Code.put2(1 + fAdr - Code.pc);
+			// Code.put(Code.call);
+			// Code.put2(1 + fAdr - Code.pc);
 
 			break;
 
 		default:
+			Code.put(Code.call);
+			Code.put2(1 + fAdr - Code.pc);
 			break;
 		}
 		
@@ -301,7 +303,7 @@ public class CodeGenerator extends VisitorAdaptor {
 
 		switch (fName) {
 		case "ord":
-			Code.put(Code.call);
+			// Code.put(Code.call);
 			break;
 
 		case "len":
@@ -309,15 +311,17 @@ public class CodeGenerator extends VisitorAdaptor {
 			break;
 
 		case "chr":
-			Code.put(Code.call);
+			// Code.put(Code.call);
 			break;
 
 		default:
+			int tmp = fAdr - Code.pc;
+			Code.put(Code.call);
+			Code.put2(tmp);
 			break;
 		}
 		
-		int tmp = fAdr - Code.pc;
-		Code.put2(tmp);
+		
 		
 		if(funcCall.getDesignatorForActPars().getDesignator().obj.getType() == Tab.noType) {
 			Code.put(Code.pop);
@@ -619,7 +623,7 @@ public class CodeGenerator extends VisitorAdaptor {
 			node = ((ForeachStmt)foreachDesignator.getParent()).getForeachIdent().obj;
 			
 			if(node.getType() != Tab.charType) {
-				Code.put(Code.baload);
+				Code.put(Code.aload);
 			}
 			else {
 				Code.put(Code.aload);
