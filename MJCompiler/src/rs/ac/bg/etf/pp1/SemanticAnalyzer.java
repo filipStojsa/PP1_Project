@@ -664,13 +664,37 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		}
 	}
 	
+	public void visit(MoreDesignators moreDesignators) {
+		OptDesignator optDes = moreDesignators.getOptDesignator();
+		if(optDes instanceof OptDesignatorExsists) {
+			Obj obj = ((OptDesignatorExsists)optDes).getDesignator().obj;
+			listToAssign.add(obj);
+		}
+		else {
+			listToAssign.add(null);
+		}
+	}
+	
+	public void visit(SingleDesignator singleDesignator) {
+		OptDesignator optDes = singleDesignator.getOptDesignator();
+		if(optDes instanceof OptDesignatorExsists) {
+			Obj obj = ((OptDesignatorExsists)optDes).getDesignator().obj;
+			listToAssign.add(obj);
+		}
+		else {
+			listToAssign.add(null);
+		}
+	}
+	
 	// For list of assignments - using listToAssign
 	public void visit(DesignatorsList designatorsList) {
-		int kind = designatorsList.getDesignator().obj.getKind();
+		int kind = designatorsList.getDesignator().obj.getType().getKind();
 		if(kind == Struct.Array) {
 			for (Obj node : listToAssign) {
-				if(!designatorsList.getDesignator().obj.getType().assignableTo(node.getType())) {
-					report_error("Dodela vrednosti u nizu nije korektna!", designatorsList);
+				if(node != null) {
+					if(!designatorsList.getDesignator().obj.getType().getElemType().assignableTo(node.getType())) {
+						report_error("Dodela vrednosti u nizu nije korektna!", designatorsList);
+					}
 				}
 			}
 		}
@@ -813,15 +837,15 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	
 	boolean minusExpr = false;
 	
-	public void visit(ExprTermSingle exprTerm) {
-		exprTerm.struct = exprTerm.getTerm().struct;
-	}
-	
 	public void visit(ExprWith negExpr) {
 		minusExpr = true;
 		// TODO: Dodaj proveru da li je int ili ne i uradi samo ovo iznad
-		
-		negExpr.struct = negExpr.getExprTermList().struct;		
+		if(negExpr.getExprTermList() instanceof ExprTermSingle) {
+			negExpr.struct = negExpr.getTerm().struct;
+		}
+		else {
+			negExpr.struct = negExpr.getExprTermList().struct;
+		}
 	}
 	
 	public void visit(ExprTermMultiple addExpr) {
@@ -832,10 +856,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		else {
 			addExpr.struct = addExpr.getTerm().struct;
 		}
-	}
-	
-	public void visit(ExptrWithout exprWithout) {
-		exprWithout.struct = exprWithout.getExprTermList().struct;
 	}
 	
 	/* ************ Operators ************ */

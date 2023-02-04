@@ -164,9 +164,10 @@ public class CodeGenerator extends VisitorAdaptor {
 	
 	/* ***** Expr ***** */
 	
-	public void visit(ExprWith wMinus) {
+	public void visit(ExpryMinusDummy wMinus) {
 		// If the expression is negative
-		Code.put(Code.neg);
+		if(((ExprWith)wMinus.getParent()).getExprMinus() instanceof ExprMinusWith)
+			Code.put(Code.neg);
 	}
 	
 	public void visit(ExprTermMultiple exprTermMultiple) {
@@ -251,11 +252,12 @@ public class CodeGenerator extends VisitorAdaptor {
 	/* ***** Designators ***** */
 	
 	// TODO: Da li mi treba? Treba ovde jos posla...
-	/*
-	 * public void visit(DesignatorIdent designatorIdent) {
-	 * 
-	 * }
-	 */
+	public void visit(DesignatorIdent designatorIdent) { 
+//		if(designatorIdent.obj.getKind() == Obj.Meth) {
+//			if(designatorIdent.obj.get)
+//		}
+	}
+	 
 	
 	public void visit(ArryDesignator arrayDesignator) {
 		Code.load(arrayDesignator.getDesignator().obj);
@@ -362,6 +364,7 @@ public class CodeGenerator extends VisitorAdaptor {
 				
 				// store modified objects
 				Code.store(node);
+				i++;
 			}
 		}
 		
@@ -371,13 +374,25 @@ public class CodeGenerator extends VisitorAdaptor {
 	
 	// TODO: Proveri ovo da li valja
 	public void visit(MoreDesignators moreDesignators) {
-		Obj obj = moreDesignators.getDesignator().obj;
-		listToAssing.add(obj);
+		OptDesignator optDes = moreDesignators.getOptDesignator();
+		if(optDes instanceof OptDesignatorExsists) {
+			Obj obj = ((OptDesignatorExsists)optDes).getDesignator().obj;
+			listToAssing.add(obj);
+		}
+		else {
+			listToAssing.add(null);
+		}
 	}
 	
 	public void visit(SingleDesignator singleDesignator) {
-		Obj obj = singleDesignator.getDesignator().obj;
-		listToAssing.add(obj);
+		OptDesignator optDes = singleDesignator.getOptDesignator();
+		if(optDes instanceof OptDesignatorExsists) {
+			Obj obj = ((OptDesignatorExsists)optDes).getDesignator().obj;
+			listToAssing.add(obj);
+		}
+		else {
+			listToAssing.add(null);
+		}
 	}
 	
 	/* ***** CondFact ***** */

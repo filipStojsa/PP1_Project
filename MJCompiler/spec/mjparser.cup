@@ -108,9 +108,9 @@ LastVarDeclarations, ConstDecl, ConstType, ConstDeclList, ClassDecl, ClassBodyLi
 FormParsList, MethodVarDeclList, StatementList, IfElseEpsilon, IfStartHelper,
 IfCondition, WhileCondition, DesignatorStatement, DesignatorList, ActPars, 
 ActParsList, Condition, CondTerm, ActParameter, DesignatorForActPars, HelperCondFact, HelperCondTerm,
-Label, Assignop, Relop, Addop, Mulop, FormPars, FormParsDecl, ArryDesignator, BeginWhile, BeginBreak, DesignatorForFunc;
+Label, Assignop, Relop, Addop, Mulop, FormPars, FormParsDecl, ArryDesignator, BeginWhile, BeginBreak, DesignatorForFunc, ExpryMinusDummy, ExprMinus;
 
-nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodReturnType, MethodDecl, BeginClassDecl, Designator, ForeachIdent;
+nonterminal rs.etf.pp1.symboltable.concepts.Obj ProgName, Program, MethodReturnType, MethodDecl, BeginClassDecl, Designator, ForeachIdent, OptDesignator;
 nonterminal rs.etf.pp1.symboltable.concepts.Struct Type, ConstDeclarations, Statement, Expr, OptExtend, Factor, ForeachDesignator, ExprTermList, Term, FactorList, CondFact, AdditionalPrint;
 
 /* Grammar */
@@ -253,7 +253,7 @@ ForeachIdent ::= (ForeachIdent) IDENT:name;
 IfElseEpsilon ::= (IfElseEpsilon) /* epsilon */;
 
 IfCondition ::= (IfConditionOk) IF IfStartHelper Condition HelperCondTerm RPAREN Statement
-				| (ErrIfCondition) IF IfStartHelper LPAREN error RPAREN
+				| (ErrIfCondition) IF IfStartHelper error RPAREN
 				;
 
 IfStartHelper ::= (IfStartHelper) LPAREN;
@@ -278,8 +278,12 @@ Designator ::= (DesignatorForFields) Designator DOT IDENT
 			| (DesignatorIdent) IDENT:nameDesignator
 			;
 			
-DesignatorList ::= (MoreDesignators) DesignatorList COMMA Designator
-				| (SingleDesignator) Designator
+DesignatorList ::= (MoreDesignators) DesignatorList COMMA OptDesignator
+				| (SingleDesignator) OptDesignator
+				;
+				
+OptDesignator ::= (OptDesignatorExsists) Designator
+				| (NoOptDesignator) /* epsilon */
 				;
 				
 ArryDesignator ::= (ArryDesignator) Designator;
@@ -315,13 +319,17 @@ CondFact ::= (CondFactMultipleExpr) Expr:first Relop Expr:second
 
 
 /* Expressions */
+	 
+ExprMinus ::= (ExprMinusWith) MINUS
+			| (ExprMinusWithout) /* epsilon */
+			;
 
-Expr ::= (ExprWith) MINUS ExprTermList
-		| (ExptrWithout) ExprTermList
-		;
+Expr ::= (ExprWith) ExprMinus Term ExpryMinusDummy ExprTermList;
+
+ExpryMinusDummy ::= (ExpryMinusDummy) /* epsilon */;
 
 ExprTermList ::= (ExprTermMultiple) ExprTermList Addop Term
-				| (ExprTermSingle) Term
+				| (ExprTermSingle) /* epsilon */
 				;
 
 Term ::= (Term) FactorList;
