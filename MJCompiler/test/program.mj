@@ -2,55 +2,20 @@
 
 program mytest
 
-const int y = 5;
-int i, curr;
 int niz[];
+char niz_chr[];
+int i;
+
 {
 	void main()
-	int x, z;
+	int x;
 	{
-		x = 5;
-		z = 3;
-		if(x > z || x > 5)
-		{
-			print(1);
-			print(2);
-		}
-		else {
-			print(3);
-		}
-		
-		i = 0;
-		while(i < 5)
-		{
-			if(i == 3)
-			{
-				print('a');
-				i++;
-				continue;
-			}
-			if(i == 4) break;
-			print('c');
-			i++;
-		}
-		print('x');
-		
 		niz = new int[3];
 		niz[0] = 1;
-		niz[1] = 2;
+		niz[1] = 4;
 		niz[2] = 3;
-		
-		i = 0;
-		while(i < 3)
-		{
-			print(niz[i]);
-			i++;
-		}
-		
-		niz.foreach(curr => print(curr););
-		
-		print(niz[1]);
-		
+		x = ^niz;
+		print(x);
 		return;
 	}
 }

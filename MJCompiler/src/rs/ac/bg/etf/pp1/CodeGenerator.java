@@ -644,4 +644,112 @@ public class CodeGenerator extends VisitorAdaptor {
     	Code.put(Code.pop);
 	}
 	
+	/* Modifikacija 1 - ^niz */
+	
+//	public void visit(KapaExpr max) {		
+//		Code.load(max.getDesignator().obj);
+//		Code.loadConst(-1);
+//		Code.loadConst(-100);
+//		
+//		int loopIncrement = Code.pc;
+//		
+//		Code.loadConst(1);
+//		Code.put(Code.add);
+//    	Code.put(Code.dup2);
+//    	Code.put(Code.pop);
+//    	
+//    	// Put array length - for num of iterations
+//    	Code.put(Code.arraylength);
+//    	
+//    	Code.put(Code.dup2);
+//    	Code.put(Code.pop);
+//    	
+//    	Code.put(Code.dup_x1);
+//    	Code.put(Code.pop);
+//    	
+//    	int passLoop = Code.pc + 1;
+//    	Code.putFalseJump(Code.lt, 0);
+//    	
+//    	/* Loop's body */
+//
+//    	Code.put(Code.dup2);
+//    	Code.put(Code.aload); 	// arr[i]
+//    	
+//    	
+//    	Code.put(Code.dup_x2);
+//    	Code.put(Code.pop);
+//    	/* ----------- */
+//    	
+//    	Code.putJump(loopIncrement);
+//    	Code.fixup(passLoop);
+//		Code.put(Code.pop);
+//		Code.put(Code.pop);
+//	}
+	
+	public void visit(KapaDesignatorStmt maxNode) {	
+		Obj max = maxNode.getDesignator().obj;
+		Obj arr = maxNode.getDesignator1().obj;
+		
+		Code.load(arr);
+		Code.loadConst(0);
+		Code.put(Code.aload);
+		Code.store(max);
+		
+		Code.load(arr);
+		Code.loadConst(0);
+		
+		int loopIncrement = Code.pc;
+		
+		Code.loadConst(1);
+		Code.put(Code.add);
+    	Code.put(Code.dup2);
+    	Code.put(Code.pop);
+    	
+    	// Put array length - for num of iterations
+    	Code.put(Code.arraylength);
+    	
+    	Code.put(Code.dup2);
+    	Code.put(Code.pop);
+    	
+    	Code.put(Code.dup_x1);
+    	Code.put(Code.pop);
+    	
+    	int passLoop = Code.pc + 1;
+    	Code.putFalseJump(Code.lt, 0);
+    	
+    	/* Loop's body */
+
+    	Code.put(Code.dup2);
+    	Code.put(Code.aload); 	// arr[i]
+    	Code.load(max);			// max
+    	
+    	Code.put(Code.dup2);
+        
+        int jmp = Code.pc + 1;
+        Code.putFalseJump(Code.gt, 0);
+
+        Code.put(Code.pop);
+        
+        int jmp2 = Code.pc + 1;
+        Code.putJump(0);
+        
+        Code.fixup(jmp);
+                
+        Code.put(Code.dup_x1);
+        Code.put(Code.pop);
+        Code.put(Code.pop);
+        
+        Code.fixup(jmp2);
+    	
+        Code.store(max);
+    	
+//    	Code.put(Code.dup_x2);
+//    	Code.put(Code.pop);
+    	/* ----------- */
+    	
+    	Code.putJump(loopIncrement);
+    	Code.fixup(passLoop);
+		Code.put(Code.pop);
+		Code.put(Code.pop);
+	}
 }

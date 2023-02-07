@@ -591,7 +591,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	}
 	
 	/* ************ DesignatorStatement ************ */
-	
+		
 	public void visit(DesignatorAssignop designatorAssignop) {
 		Struct leftDesType = designatorAssignop.getDesignator().obj.getType();
 		Struct rightExprType = designatorAssignop.getExpr().struct;
@@ -611,7 +611,7 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 			report_error("Pokusaj koriscenja foreach za dodelu vrednosti - nije dozvoljeno!", designatorAssignop);
 			return;
 		}
-		
+				
 	}
 	
 	public void visit(DesignatorIncrement desInc) {
@@ -950,6 +950,44 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 		else {
 			report_error("Neki cinioci nisu INT!", term);
 			term.struct = Tab.noType;
+		}
+	}
+	
+	/* Modifikacija 1 - ^niz */
+	
+//	public void visit(KapaExpr kapaExpr) {
+//		Obj typeNode = kapaExpr.getDesignator().obj;
+//		if(typeNode != null) {
+//			if(typeNode.getType().getKind() != Struct.Array) {
+//				report_error("U modifikaciji nije niz!", kapaExpr);
+//				return;
+//			}
+//			else if(kapaExpr.getDesignator().obj.getType().getElemType().getKind() != Struct.Int) {
+//				report_error("U modifikaciji nije niz celih brojeva!", kapaExpr);
+//				return;
+//			}
+//			kapaExpr.struct = kapaExpr.getDesignator().obj.getType().getElemType();
+//		}
+//		else {
+//			report_error("U modifikaciji baca null!", kapaExpr);
+//			kapaExpr.struct = Tab.noType;
+//		}
+//	}
+	
+	public void visit(KapaDesignatorStmt kapaExpr) {
+		Obj typeNode = kapaExpr.getDesignator1().obj;
+		if(typeNode != null) {
+			if(typeNode.getType().getKind() != Struct.Array) {
+				report_error("U modifikaciji nije niz!", kapaExpr);
+				return;
+			}
+			else if(typeNode.getType().getElemType().getKind() != Struct.Int) {
+				report_error("U modifikaciji nije niz celih brojeva!", kapaExpr);
+				return;
+			}
+		}
+		else {
+			report_error("U modifikaciji baca null!", kapaExpr);
 		}
 	}
 }

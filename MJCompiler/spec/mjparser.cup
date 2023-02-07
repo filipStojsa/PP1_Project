@@ -100,6 +100,7 @@ terminal RBRACKET;
 terminal LBRACE;
 terminal RBRACE;
 terminal ARROW;
+terminal KAPA;
 
 /* NonTerminals */
 
@@ -269,6 +270,7 @@ DesignatorStatement ::= (DesignatorAssignop) Designator Assignop Expr
 					| (DesignatorIncrement) Designator INCREMENT
 					| (DesignatorDecrement) Designator DECREMENT
 					| (DesignatorsList) LBRACKET DesignatorList RBRACKET EQ Designator
+					| (KapaDesignatorStmt) Designator Assignop KAPA Designator
 					;
 
 DesignatorForFunc ::= (DesignatorForFunc) Designator;

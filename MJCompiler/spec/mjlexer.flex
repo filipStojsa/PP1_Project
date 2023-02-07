@@ -100,6 +100,7 @@ import java_cup.runtime.Symbol;
 "]"			{ return new_symbol(sym.RBRACKET, yytext()); }
 
 "=>"		{ return new_symbol(sym.ARROW, yytext()); }
+"^"			{ return new_symbol(sym.KAPA, yytext()); }
 
 // Comment section
 "//" {yybegin(COMMENT);}
