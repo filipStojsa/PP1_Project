@@ -107,13 +107,13 @@ import java_cup.runtime.Symbol;
 <COMMENT> "\r\n" { yybegin(YYINITIAL); }
 
 // Numbers
-[0-9]+  { return new_symbol(sym.NUMBER, new Integer (yytext())); }
+[0-9]+  { return new_symbol(sym.NUMBER, Integer.valueOf(yytext())); }
 
 // Boolean
-("true"|"false")	{ return new_symbol(sym.BOOLEAN, new Boolean(yytext())); }
+("true"|"false")	{ return new_symbol(sym.BOOLEAN, Boolean.valueOf(yytext())); }
 
 // Chars
-'([a-z]|[A-Z])'		{ return new_symbol(sym.CHAR, new Character(yytext().charAt(1))); }
+'([a-z]|[A-Z])'		{ return new_symbol(sym.CHAR, Character.valueOf(yytext().charAt(1))); }
 
 // Identifier
 ([a-z]|[A-Z])[a-zA-Z0-9_]* 	{return new_symbol (sym.IDENT, yytext()); }
