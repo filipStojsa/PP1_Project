@@ -210,7 +210,6 @@ public class SemanticAnalyzer extends VisitorAdaptor {
 	/* ************ Method declaration ************ */
 	
 	private boolean isFirstGlobalMethodDeclaration(String nameMeth) {
-		// TODO: Proveri dodatno da li je u istom opsegu eventualno
 		Obj tmp = Tab.find(nameMeth);
 		if(!tmp.equals(Tab.noObj)) {
 			report_error("Globalna metoda imena " + nameMeth + " vec postoji!", null);

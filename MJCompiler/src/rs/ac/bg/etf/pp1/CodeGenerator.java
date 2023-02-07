@@ -201,7 +201,6 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 	
 	public void visit(FactorNewExpr farray) {
-		// TODO: zasto ovde 1 i 0??
 		if(farray.struct.getElemType() == Tab.charType) {
 			Code.put(Code.newarray);
 			Code.put(0);
@@ -264,7 +263,6 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 	
 	public void visidDesignatorIncDec(Obj object, int code) {
-		// TODO: Da li ovde treba dup2 ili ne?
 		//Code.put(Code.dup2);
 		Code.load(object);
 		Code.loadConst(1);
@@ -620,7 +618,7 @@ public class CodeGenerator extends VisitorAdaptor {
 				Code.put(Code.aload);
 			}
 			else {
-				Code.put(Code.aload);
+				Code.put(Code.baload);
 			}
 			
 			Code.store(node);
@@ -631,7 +629,6 @@ public class CodeGenerator extends VisitorAdaptor {
 
 	private void codeManipulationForeach() {
 		
-		// Load consts TODO: Da ti objasne ovo
 		Code.loadConst(1);
 		Code.put(Code.add);
     	Code.put(Code.dup2);
