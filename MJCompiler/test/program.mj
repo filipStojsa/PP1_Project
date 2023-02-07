@@ -11,6 +11,7 @@ int niz[];
 	{
 		x = 5;
 		z = 3;
+		skip 1;
 		if(x > z || x > 5)
 		{
 			print(1);
@@ -33,24 +34,8 @@ int niz[];
 			print('c');
 			i++;
 		}
-		print('x');
-		
-		niz = new int[3];
-		niz[0] = 1;
-		niz[1] = 2;
-		niz[2] = 3;
-		
-		i = 0;
-		while(i < 3)
-		{
-			print(niz[i]);
-			i++;
-		}
-		
-		niz.foreach(curr => print(curr););
-		
-		print(niz[1]);
-		
+		print(x);
+	
 		return;
 	}
 }

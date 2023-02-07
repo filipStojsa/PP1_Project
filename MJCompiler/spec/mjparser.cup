@@ -100,6 +100,7 @@ terminal RBRACKET;
 terminal LBRACE;
 terminal RBRACE;
 terminal ARROW;
+terminal SKIP;
 
 /* NonTerminals */
 
@@ -236,6 +237,7 @@ Statement ::= (DesignatorStmt) DesignatorStatement SEMICOL
 			| (ForeachStmt) ForeachDesignator ForeachIdent ARROW Statement RPAREN SEMICOL
 			| (PrintStmt) PRINT LPAREN Expr AdditionalPrint RPAREN SEMICOL
 			| (StatementListWithBraces) LBRACE StatementList RBRACE
+			| (SkipStmt) SKIP NUMBER SEMICOL
 			;
 
 AdditionalPrint ::= (WithAdditionalPrint) COMMA NUMBER:printW

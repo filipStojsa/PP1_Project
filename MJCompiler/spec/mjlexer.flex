@@ -66,6 +66,7 @@ import java_cup.runtime.Symbol;
 // Print and read predefined
 "print" 	{ return new_symbol(sym.PRINT, yytext()); }
 "read" 		{ return new_symbol(sym.READ, yytext()); }
+"skip" 		{ return new_symbol(sym.SKIP, yytext()); }
 
 // Operator terminals
 "+" 		{ return new_symbol(sym.PLUS, yytext()); }

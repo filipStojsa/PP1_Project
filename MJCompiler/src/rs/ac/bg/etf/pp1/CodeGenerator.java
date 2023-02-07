@@ -15,6 +15,8 @@ public class CodeGenerator extends VisitorAdaptor {
 	/* ***** MainPC part ***** */
 	int mainPC = 0;
 	
+	int nSkip = 0;
+	
 	public int getMainPc() {
 		return mainPC;
 	}
@@ -94,6 +96,10 @@ public class CodeGenerator extends VisitorAdaptor {
 	
 	// ReturnStmt is found
 	public void visit(ReturnStmt returnStmt) {
+		if(nSkip > 0) {
+			nSkip--;
+			return;
+		}
 		isReturnStmtFound = true;
 		
 		Code.put(Code.exit);
@@ -101,6 +107,10 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 	
 	public void visit(ReturnStmtNoExpr returnStmt) {
+		if(nSkip > 0) {
+			nSkip--;
+			return;
+		}
 		isReturnStmtFound = true;
 		
 		Code.put(Code.exit);
@@ -110,6 +120,10 @@ public class CodeGenerator extends VisitorAdaptor {
 	/* ***** Print & Read ***** */
 	
 	public void visit(PrintStmt printStmt) {
+		if(nSkip > 0) {
+			nSkip--;
+			return;
+		}
 		if(printStmt.getExpr().struct == Tab.intType || printStmt.getExpr().struct == SemanticAnalyzer.boolType) {
 			Code.put(Code.print);
 		}
@@ -137,6 +151,10 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 	
 	public void visit(ReadStmt readStmt) {
+		if(nSkip > 0) {
+			nSkip--;
+			return;
+		}
 		Struct type = readStmt.getDesignator().obj.getType();
 		if(type == Tab.charType) {
 			Code.put(Code.bread);
@@ -259,6 +277,10 @@ public class CodeGenerator extends VisitorAdaptor {
 	/* ***** DesignatorStatement ***** */
 	
 	public void visit(DesignatorAssignop designatorAssignop) {
+		if(nSkip > 0) {
+			nSkip--;
+			return;
+		}
 		Code.store(designatorAssignop.getDesignator().obj);
 	}
 	
@@ -271,11 +293,19 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 	
 	public void visit(DesignatorIncrement designatorIncrement) {
+		if(nSkip > 0) {
+			nSkip--;
+			return;
+		}
 		Obj designatorIncObj = designatorIncrement.getDesignator().obj;
 		visidDesignatorIncDec(designatorIncObj, Code.add);
 	}
 	
 	public void visit(DesignatorDecrement designatorDecrement) {
+		if(nSkip > 0) {
+			nSkip--;
+			return;
+		}
 		Obj designatorDecObj = designatorDecrement.getDesignator().obj;
 		visidDesignatorIncDec(designatorDecObj, Code.sub);
 	}
@@ -286,6 +316,10 @@ public class CodeGenerator extends VisitorAdaptor {
 	
 	// The actual function call itself
 	public void visit(DesignatorActPars funcCall) {
+		if(nSkip > 0) {
+			nSkip--;
+			return;
+		}
 		funcCalls.pop();
 
 		String fName = funcCall.getDesignatorForActPars().getDesignator().obj.getName();
@@ -324,6 +358,10 @@ public class CodeGenerator extends VisitorAdaptor {
 	List<Obj> listToAssing = new ArrayList<>();
 	
 	public void visit(DesignatorsList designatorsList) {
+		if(nSkip > 0) {
+			nSkip--;
+			return;
+		}
 		int numOfParams = listToAssing.size();
 		Code.loadConst(numOfParams);
 		
@@ -488,6 +526,10 @@ public class CodeGenerator extends VisitorAdaptor {
 	}
 	
 	public void visit(IfStmt ifStmt) {
+		if(nSkip > 0) {
+			nSkip--;
+			return;
+		}
 		// Fixup ands
 		List<Integer> andTmp = andPatchs.pop();
 		elsePatchs.pop();
@@ -499,6 +541,10 @@ public class CodeGenerator extends VisitorAdaptor {
 	
 	public void visit(IfElseStmt ifElseStmt) {
 		// Fixup elses
+		if(nSkip > 0) {
+			nSkip--;
+			return;
+		}
 		List<Integer> elseTmp = elsePatchs.pop();
 		andPatchs.pop();
 		orPatchs.pop();
@@ -520,6 +566,10 @@ public class CodeGenerator extends VisitorAdaptor {
 	
 	// While loop ends
 	public void visit(WhileStmt whileStmt) {
+		if(nSkip > 0) {
+			nSkip--;
+			return;
+		}
 		int whileFromStackAdr = 0;
 		whileFromStackAdr = loopsStack.pop();
 		
@@ -553,12 +603,20 @@ public class CodeGenerator extends VisitorAdaptor {
 	
 	// Break and Continue ends
 	public void visit(ContinueStmt continueStmt) {
+		if(nSkip > 0) {
+			nSkip--;
+			return;
+		}
 		int lastWhileAdr = loopsStack.pop();
 		Code.putJump(lastWhileAdr);
 		loopsStack.push(lastWhileAdr);
 	}
 	
 	public void visit(BreakStmt breakStmt) {
+		if(nSkip > 0) {
+			nSkip--;
+			return;
+		}
 		List<Integer> breakList = breakPatchs.pop();
 		int adressToAdd = Code.pc + 1;
 		breakList.add(adressToAdd);
@@ -570,6 +628,10 @@ public class CodeGenerator extends VisitorAdaptor {
 	// Foreach
 	
 	public void visit(ForeachStmt foreachStmt) {
+		if(nSkip > 0) {
+			nSkip--;
+			return;
+		}
 		int condAdr = 0;
 		condAdr = loopsStack.pop();	// This is address of foreach
 		Code.putJump(condAdr);
@@ -644,4 +706,9 @@ public class CodeGenerator extends VisitorAdaptor {
     	Code.put(Code.pop);
 	}
 	
+	/* Modifikacija 2 - skip n izraza */
+	
+	public void visit(SkipStmt skipStmt) {
+		nSkip = skipStmt.getN1();
+	}
 }
